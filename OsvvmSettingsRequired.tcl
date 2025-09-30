@@ -170,10 +170,6 @@ namespace eval ::osvvm {
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
     
-    if {![info exists Support2019FilePath]} {
-      variable Support2019FilePath       "false"
-    }
-    
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
       set OperatingSystemName windows
     }

@@ -70,16 +70,21 @@
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 
-  if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
-    SetVHDLVersion 2019
-  }
-  
   if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
     variable FunctionalCoverageIntegratedInSimulator "NVC"
   }
   
+  if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
+    SetVHDLVersion 2019
+    variable Supports2019ImpureFunctions     "true"
+  }
+  
   if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
-    variable Support2019FilePath "true"
+    SetVHDLVersion 2019
+    variable Supports2019Env                 "true"
+    variable Supports2019Interface           "true"
+    variable Supports2019ImpureFunctions     "true"
+    variable Supports2019FilePath            "true"
   }
 
 

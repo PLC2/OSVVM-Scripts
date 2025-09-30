@@ -163,6 +163,24 @@ namespace eval ::osvvm {
     variable CreateVTI           "false"
 
   #
+  #  Simulator - Vendor Controls
+  #    Specify which parts of 2019 are supported
+  #    If set by vendor scripts do not change the setting
+  #
+    if {![info exists Supports2019Env]} {
+      variable Supports2019Env                 "false"
+    }
+    if {![info exists Supports2019Interface]} {
+      variable Supports2019Interface           "false"
+    }
+    if {![info exists Supports2019ImpureFunctions]} {
+      variable Supports2019ImpureFunctions     "false"
+    }
+    if {![info exists Supports2019FilePath]} {
+      variable Supports2019FilePath            "false"
+    }
+
+  #
   # FunctionalCoverageIntegratedInSimulator controls whether osvvm.pro allows functional coverage to be linked into simulator interface
   #   osvvm.pro does:  analyze CoverageVendorApiPkg_${::osvvm::FunctionalCoverageIntegratedInSimulator}.vhd
   #   Currently valid values are:   

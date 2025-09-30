@@ -190,7 +190,7 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
   } else {
     set FileBaseName  "_${::osvvm::OutputBaseDirectory}" 
   }
-  if {$::osvvm::Support2019FilePath && $::osvvm::VhdlVersion >= 2019} {
+  if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
     set TestCaseCommonPkgFile  [file join ${CurrentDir} "${PackageName}${FileBaseName}.vhd"] 
   } else {
     CreateDirectory [file join ${CurrentDir} deprecated]
@@ -210,7 +210,7 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
     puts $FileHandle "library osvvm ;" 
     puts $FileHandle "context osvvm.OsvvmContext ;" 
     puts $FileHandle "package ${PackageName} is" 
-    if {$::osvvm::Support2019FilePath && $::osvvm::VhdlVersion >= 2019} {
+    if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
       puts $FileHandle "  constant PATH_TO_TEST_SRC            : string  := RemoveEndingSeparator(ChangeSeparator(FILE_PATH))  & \"/\";  -- only valid with VHDL-2019"
     } else {
       puts $FileHandle "  constant PATH_TO_TEST_SRC            : string := \"[file normalize [file join $::osvvm::CurrentWorkingDirectory]]/\" ;"

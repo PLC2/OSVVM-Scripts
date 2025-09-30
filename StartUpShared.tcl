@@ -115,11 +115,13 @@ namespace import ::osvvm::*
 
 
 # --------------------------------
-# Settings:  OsvvmSettings*.tcl
+# Load Settings
 # --------------------------------
-# Settings First:  OSVVM Default Settings 
+# Load Default settings
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsDefault.tcl
 
+# --------------------------------
+# Load User settings
 # Get Directory for User settings
 variable ::osvvm::OsvvmUserSettingsDirectory [FindOsvvmSettingsDirectory "Scripts"]
 
@@ -135,6 +137,8 @@ if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal.tcl]}
   source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl
 }
 
+# --------------------------------
+# Load User Tool specific settings
 # Settings Third   OSVVM User Simulator specific defaults - not required
 if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal_${::osvvm::ScriptBaseName}.tcl]} {
   # Found in OSVVM_SETTINGS_DIR
