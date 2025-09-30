@@ -397,10 +397,12 @@ proc build {{Path_Or_File "."} args} {
       #  Catch any errors from the build and handle them below
       set BuildErrorCode [catch {LocalBuild $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "LocalBuild errorInfo: $::errorInfo"
+      if {$BuildErrorCode != 0} {   
+        CheckSimulationDirs  ; ##?? Creates ReportsDirectory for builds that fail.  Refactor later.
+        if {$::osvvm::TclDebug} {
+          puts "LocalBuild errorInfo: $::errorInfo"
+        }
       }
-
       
       set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
       set LocalBuildYamlErrorInfo $::errorInfo
