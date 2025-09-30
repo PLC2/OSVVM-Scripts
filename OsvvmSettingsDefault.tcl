@@ -26,7 +26,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.  
+#  Copyright (c) 2021 - 2025 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@
 #
 # DO NOT CHANGE THESE SETTINGS
 #   This file is overwritten with each new release.
-#   Instead, create a LocalScriptDefaults.tcl and change them there.
-#   If you do not have a LocalScriptDefaults.tcl, 
-#   copy Example_LocalScriptDefaults.tcl to LocalScriptDefaults.tcl
+#   Instead, create a OsvvmSettingsLocal.tcl and change them there.
+#   If you do not have a OsvvmSettingsLocal.tcl, 
+#   copy OsvvmSettingsLocal_example.tcl to OsvvmSettingsLocal.tcl
 #
 
 
@@ -154,8 +154,13 @@ namespace eval ::osvvm {
     variable Debug               "false"
     variable LogSignalsIsSet     "false"
     variable LogSignals          "false"
-    variable ScriptDebug         "false"
     variable OpenBuildHtmlFile   "false"
+
+  #
+  #  OsvvmDeveloper Controls
+  #
+    variable ScriptDebug         "false"
+    variable CreateVTI           "false"
 
   #
   # FunctionalCoverageIntegratedInSimulator controls whether osvvm.pro allows functional coverage to be linked into simulator interface
