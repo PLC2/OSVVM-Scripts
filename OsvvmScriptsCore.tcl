@@ -1472,6 +1472,9 @@ proc RunAllTests {{TestFilePrefix ""} args} {
   foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
     RunTest $Test
   }
+  foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhdl]] {
+    RunTest $Test
+  }
 }
 
 # -------------------------------------------------
@@ -2235,6 +2238,9 @@ namespace export EndSimulation
 namespace export FindLibraryPathByName CoSim
 namespace export OpenBuildHtml OpenIndex
 namespace export GetTimeString
+
+# Experimental
+namespace export RunAllTests
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile UnsetLibraryVars
