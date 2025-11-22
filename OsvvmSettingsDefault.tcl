@@ -167,9 +167,6 @@ namespace eval ::osvvm {
   #    Specify which parts of 2019 are supported
   #    If set by vendor scripts do not change the setting
   #
-    if {![info exists Supports2019Env]} {
-      variable Supports2019Env                 "false"
-    }
     if {![info exists Supports2019Interface]} {
       variable Supports2019Interface           "false"
     }
@@ -178,6 +175,9 @@ namespace eval ::osvvm {
     }
     if {![info exists Supports2019FilePath]} {
       variable Supports2019FilePath            "false"
+    }
+    if {![info exists Supports2019AssertApi]} {
+      variable Supports2019AssertApi           "false"
     }
 
   #

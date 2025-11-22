@@ -95,9 +95,13 @@ package require fileutil
     variable SiemensSimulateOptions "-batch"
   }
 
-#  if {[expr [string compare $ToolVersion "2025.3"] >= 0]} {
-#    SetVHDLVersion 2019
-#  }
+  if {[expr [string compare $ToolVersion "2025.2"] >= 0]} {
+    SetVHDLVersion 2019
+    variable Supports2019Interface             "true"
+    # variable Supports2019ImpureFunctions     "true"
+    # variable Supports2019FilePath            "true"
+    # variable Supports2019AssertApi           "true"
+  }
 
   # Set if not set
   if {![info exists ::VoptArgs]} {
