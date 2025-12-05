@@ -8,6 +8,7 @@
 # 
 #  Description
 #    Sets the defaults for the OSVVM Scripts
+#    Primarily settings that can be overridden in OsvvmSettingsLocal.tcl
 #    
 #  Developed by: 
 #        SynthWorks Design Inc. 
@@ -68,10 +69,10 @@ namespace eval ::osvvm {
     # Caution:  If you change the value of OsvvmTempOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
     # Files only remain in this directory when a tool does not complete correctly
     variable OutputBaseDirectory                  ""      ; # Container for all OSVVM ouput
-#    variable OsvvmTempOutputSubdirectory         "OsvvmTemp"  
-#    variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
+#     variable OsvvmTempOutputSubdirectory         "OsvvmTemp"  
+#     variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
     variable OsvvmTempOutputSubdirectory          "OsvvmTemp_${ToolName}"  
-#    variable LogSubdirectory                      "logs/${ToolNameVersion}"
+#     variable LogSubdirectory                      "logs/${ToolNameVersion}"  ;# note ToolNameVersion not available here any more
     variable LogSubdirectory                      "logs"  ; #  With build directories does not need $ToolNameVersion.  Was "logs/${ToolNameVersion}" 
     variable ReportsSubdirectory                  "reports"  ; # Directory scripts put reports into.
     variable ResultsSubdirectory                  "results"  ; # Directory for files opened by TranscriptOpen
@@ -128,7 +129,7 @@ namespace eval ::osvvm {
   #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across teests
   #      when true,  uses sum of goals - good when not merging the specification and need to sum up goals to get the total
     variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum  
-    #  variable USE_SUM_OF_GOALS         "true"     ;# when true uses sum of goals 
+    #  variable USE_SUM_OF_GOALS      "true"     ;# when true uses sum of goals 
 
   #
   # VHDL Simulation Settings 
@@ -162,41 +163,6 @@ namespace eval ::osvvm {
     variable ScriptDebug         "false"
     variable CreateVTI           "false"
 
-  #
-  #  Simulator - Vendor Controls
-  #    Specify which parts of 2019 are supported
-  #    If set by vendor scripts do not change the setting
-  #
-    if {![info exists Supports2019Interface]} {
-      variable Supports2019Interface           "false"
-    }
-    if {![info exists Supports2019ImpureFunctions]} {
-      variable Supports2019ImpureFunctions     "false"
-    }
-    if {![info exists Supports2019FilePath]} {
-      variable Supports2019FilePath            "false"
-    }
-    if {![info exists Supports2019AssertApi]} {
-      variable Supports2019AssertApi           "false"
-    }
-
-  #
-  # FunctionalCoverageIntegratedInSimulator controls whether osvvm.pro allows functional coverage to be linked into simulator interface
-  #   osvvm.pro does:  analyze CoverageVendorApiPkg_${::osvvm::FunctionalCoverageIntegratedInSimulator}.vhd
-  #   Currently valid values are:   
-  #       "default" - do not use any simulator functional coverage linking.
-  #       "Aldec"   - use the link for Aldec tools - works with RivieraPRO and ActiveHDL
-  #       "NVC"     - works with NVC 1.15.1 or newer.
-  #   Values other than "default" is set by VendorScripts_***.tcl for the respective simulator
-  #   Here, if a value was not previously set, the value "default" will be set.
-  #   To add capabilty to a simulator, 
-  #      add a file named CoverageVendorApiPkg_<simualtor_or_vendor>.vhd to directory osvvm and 
-  #      set this variable in the VendorScripts_***.tcl for the appropriate version of the simualtor (see VendorScripts_NVC.tcl)
-  #
-    if {![info exists FunctionalCoverageIntegratedInSimulator]} {
-      variable FunctionalCoverageIntegratedInSimulator "default"
-    }
-
   # 
   # Extended Analyze and Simulate Options
   #
@@ -214,7 +180,6 @@ namespace eval ::osvvm {
     variable SaveWaves                 "false"
     variable SimulateInteractive       "false"
   
-
   #
   #  Debug Controls
   #
@@ -225,17 +190,5 @@ namespace eval ::osvvm {
   #
     variable SecondSimulationTopLevel ""
   
-  #
-  # RemoveLibrary / RemoveLibraryDirectory Controls. 
-  #    Also set by by VendorScripts_ActiveHDL.  
-  #    Currently both must be false for ActiveHDL
-  #
-    if {![info exists RemoveLibraryDirectoryDeletesDirectory]} {
-      variable RemoveLibraryDirectoryDeletesDirectory "true"
-    }
-    
-    if {![info exists RemoveUnmappedLibraries]} {
-      variable RemoveUnmappedLibraries    "true"
-    }
   
 }

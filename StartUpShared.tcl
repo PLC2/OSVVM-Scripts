@@ -82,6 +82,12 @@ source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsSimulateSupport.tcl     ;#  
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl          ;#  OSVVM API for file creation
 
 # --------------------------------
+# Load Vendor Script Default settings
+#   These are updated by VendorScripts_vvv.tcl
+# --------------------------------
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsVendorScriptsDefault.tcl
+
+# --------------------------------
 # Vendor personalization of OSVVM API
 # --------------------------------
 namespace eval ::osvvm {
@@ -113,15 +119,15 @@ if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} {
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
-
 # --------------------------------
-# Load Settings
+# Load OSVVM Default settings
 # --------------------------------
-# Load Default settings
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsDefault.tcl
+
 
 # --------------------------------
 # Load User settings
+# --------------------------------
 # Get Directory for User settings
 variable ::osvvm::OsvvmUserSettingsDirectory [FindOsvvmSettingsDirectory "Scripts"]
 
