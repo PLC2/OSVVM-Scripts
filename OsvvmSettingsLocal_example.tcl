@@ -49,6 +49,15 @@
 #   Uncomment and customize the below settings
 #
 
+#
+## Define variables here to locate your projects and simplify builds
+##    build $Project1
+##    build $Project1/Testbench
+##
+# variable Project1 C:/Projects/Project1
+# variable Project2 C:/Projects/Project2
+#
+
 
 namespace eval ::osvvm {
 
