@@ -598,8 +598,10 @@ proc CheckLibraryInit {} {
     set VhdlLibraryParentDirectory [pwd]
   }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
-    # Local Library Directory - use OutputBaseDirectory
-    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+#    # Local Library Directory - use OutputBaseDirectory
+#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    # Local Library Directory - use CurrentSimulationDirectory
+    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   } else {
     # Global Library Directory - do not use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
