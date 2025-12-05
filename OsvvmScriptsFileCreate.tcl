@@ -188,7 +188,7 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
   if {${::osvvm::OutputBaseDirectory} eq ""} {
     set FileBaseName ""
   } else {
-    set FileBaseName  "_${::osvvm::OutputBaseDirectory}" 
+    set FileBaseName  "_[file tail ${::osvvm::OutputBaseDirectory}]" 
   }
   if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
     set TestCaseCommonPkgFile  [file join ${CurrentDir} "${PackageName}${FileBaseName}.vhd"] 
