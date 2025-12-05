@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion                 2025.10
+  variable OsvvmVersion                 2026.01
   variable OsvvmBuildYamlVersion        2025.02
   variable OsvvmTestCaseYamlVersion     1.0
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
@@ -75,9 +75,16 @@ namespace eval ::osvvm {
     variable ClockResetVersion $OsvvmVersionCompatibility
   }
 
-  variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+  # 
+  # OsvvmTempOutputDirectory - Used as temp directory for output
+  # DefaultBuildOutputDirectory - Default value if a build is not active
+  # OsvvmBuildOutputDirectory   - Apply default to Build Output Directory 
+  #
+  variable OsvvmTempOutputDirectory    $OsvvmTempOutputSubdirectory
+#    variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
   # Default OsvvmBuildOutputDirectory - otherwise it is [file join $OutputBaseDirectory $BuildName]
-  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+#  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+  variable DefaultBuildOutputDirectory    $OsvvmTempOutputSubdirectory
   variable OsvvmBuildOutputDirectory    $DefaultBuildOutputDirectory 
 
   # 
