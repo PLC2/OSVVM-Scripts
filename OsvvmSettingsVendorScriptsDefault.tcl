@@ -48,7 +48,6 @@
 #   copy OsvvmSettingsLocal_example.tcl to OsvvmSettingsLocal.tcl
 #
 
-
 # OSVVM Variable Defaults
 namespace eval ::osvvm {
   #
@@ -67,6 +66,23 @@ namespace eval ::osvvm {
   variable NoGui "true"
   variable ToolSupportsGenericPackages "true"
   variable ToolSupportsDeferredConstants "true"    
+
+  # 
+  # Extended Analyze Options
+  #
+  variable VhdlAnalyzeOptions        ""
+  variable VerilogAnalyzeOptions     ""
+  variable ExtendedAnalyzeOptions    ""
+    
+  #
+  #  Extended Simulate Options Options 
+  #    Not all used by all simulators
+  #
+  variable ExtendedSimulateOptions   ""  ; # Simulators that do one step optimize, elaborate, run
+  variable ExtendedGlobalOptions     ""
+  variable ExtendedOptimizeOptions   ""
+  variable ExtendedElaborateOptions  ""
+  variable ExtendedRunOptions        ""
 
   #
   # FunctionalCoverageIntegratedInSimulator controls whether osvvm.pro allows functional coverage to be linked into simulator interface
@@ -103,6 +119,4 @@ namespace eval ::osvvm {
   if {![info exists ::argc]} {
     variable ::argc  ""
   }
-
-
 }
