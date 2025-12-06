@@ -88,7 +88,9 @@
   }
 
   # Default memory to use for NVC
-  variable SimulatorMemory     "-H 128m"  
+  variable SimulatorMemory         "-H 128m"  
+  variable ExtendedGlobalOptions   "--stderr=failure --ieee-warnings=off"
+  variable ExtendedRunOptions      "--exit-severity=failure"
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
@@ -193,7 +195,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlLibraryFullPath
   variable NVC_WORKING_LIBRARY_PATH
 
-  set  GlobalOptions [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory --stderr=failure --ieee-warnings=off --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set  GlobalOptions [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec $nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
@@ -227,7 +229,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
-  set LocalGlobalOptions [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory --stderr=failure --ieee-warnings=off --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set LocalGlobalOptions    [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
   set CoSimRunOptions ""
