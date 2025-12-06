@@ -150,12 +150,21 @@ namespace eval ::osvvm {
   #
   #  Simulation Controls
   #
-    variable SimulateInteractive "false"
-    variable DebugIsSet          "false"
-    variable Debug               "false"
-    variable LogSignalsIsSet     "false"
-    variable LogSignals          "false"
-    variable OpenBuildHtmlFile   "false"
+    variable SimulateInteractive       "false"
+    variable DebugIsSet                "false"
+    variable Debug                     "false"
+    variable LogSignalsIsSet           "false"
+    variable LogSignals                "false"
+    variable OpenBuildHtmlFile         "false"
+    variable SaveWaves                 "false"
+    variable SimulateInteractive       "false"
+
+  #
+  #  VHDL File Viewer Controls
+  #
+    variable VhdlFileViewerPrefix      ""  ;# viewer = html browser.
+  #  variable VhdlFileViewerPrefix      "vscode://file/"   ;# viewer = vscode.  Set in OsvvmSettingsLocal.tcl
+
 
   #
   #  OsvvmDeveloper Controls
@@ -163,23 +172,6 @@ namespace eval ::osvvm {
     variable ScriptDebug         "false"
     variable CreateVTI           "false"
 
-  # 
-  # Extended Analyze and Simulate Options
-  #
-    variable VhdlAnalyzeOptions        ""
-    variable VerilogAnalyzeOptions     ""
-    variable ExtendedAnalyzeOptions    ""
-    variable ExtendedSimulateOptions   ""
-    
-  #
-  #  For simulators that use two steps for Elaborate/Optimize and Run/Simulate 
-  #
-    variable ExtendedElaborateOptions  ""
-    variable ExtendedOptimizeOptions   ""
-    variable ExtendedRunOptions        ""
-    variable SaveWaves                 "false"
-    variable SimulateInteractive       "false"
-  
   #
   #  Debug Controls
   #
