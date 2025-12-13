@@ -170,7 +170,7 @@ namespace eval ::osvvm {
   #  OsvvmDeveloper Controls
   #
     variable ScriptDebug         "false"
-    variable CreateVTI           "false"
+    variable CreateVti           "false"
 
   #
   #  Debug Controls
