@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     1/2026   2026.01    Added Supports2019fff to identify 2019 features supported
 #     7/2024   2024.07    Added ability to find nvc on the search path
 #     5/2024   2024.05    Added ToolVersion variable 
 #     1/2023   2023.01    Added options for CoSim 
@@ -85,6 +86,7 @@
     variable Supports2019ImpureFunctions     "true"
     variable Supports2019FilePath            "true"
     variable Supports2019AssertApi           "true"
+    variable Supports2019Integer64Bits       "true"
   }
 
   # Default memory to use for NVC
