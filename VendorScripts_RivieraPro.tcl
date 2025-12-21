@@ -72,6 +72,9 @@
     variable Supports2019FilePath            "true"
     variable Supports2019AssertApi           "true"
   }
+  if {[expr [string compare $ToolVersion "2025.07"] >= 0]} {
+    variable Supports2019Integer64Bits       "true"
+  }
 
   variable FunctionalCoverageIntegratedInSimulator "Aldec"
   
