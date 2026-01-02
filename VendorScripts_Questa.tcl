@@ -344,7 +344,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin] 
   
   # Set generics during opt rather than sim
-  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
+  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt {*}${args} -suppress 8683 -suppress 8684]
+#  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
 #  set SimulateOptions [concat $::osvvm::SiemensSimulateOptions $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
