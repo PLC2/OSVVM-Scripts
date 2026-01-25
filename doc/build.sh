@@ -12,6 +12,7 @@ printf -- "\x1b[35m[BUILD SCRIPT] Delete old documentation files in '_build' ...
 rm -Rf ${SPHINX_BUILD_DIR:-.}/* | sed 's/^/  /'
 
 printf -- "\x1b[35m[BUILD SCRIPT] Run Ruff! command in tclsh ...\x1b[0m\n"
+mkdir -p ${SPHINX_BUILD_DIR}
 tclsh - << EOF | tee ${SPHINX_BUILD_DIR}/ruff.log | sed 's/^/  /'
 puts "\x1b\[36m\[EXPORT SCRIPT\] Load Ruff! ...\x1b\[0m"
 puts "Ruff version: [package require ruff]"
@@ -59,6 +60,6 @@ for rstFile in ${RUFF_DIR}/*.rst; do
 done
 
 printf -- "\x1b[35m[BUILD SCRIPT] Build documentation ...\x1b[0m\n"
-python -m sphinx build -v -E -a -b html -w ${SPHINX_HTML_DIR}.log . ${SPHINX_HTML_DIR} | sed 's/^/  /'
+python -m sphinx build -v -E -a -b html -d ${SPHINX_BUILD_DIR}/doctrees -j $(nproc) -w ${SPHINX_HTML_DIR}.log . ${SPHINX_HTML_DIR} | sed 's/^/  /'
 
 printf -- "\x1b[35m[BUILD SCRIPT] \x1b[32mCOMPLETED\x1b[0m\n"

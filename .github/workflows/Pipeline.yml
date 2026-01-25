@@ -1,0 +1,40 @@
+name: Pipeline
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+# Every Friday at 22:00 - rerun pipeline to check for dependency-based issues
+    - cron: '0 22 * * 5'
+
+permissions:
+  actions:  write
+  contents: write
+  pages:    write
+  id-token: write
+
+jobs:
+
+  Documentation:
+    uses: ./.github/workflows/SphinxDocumentation.yml
+    with:
+      html_artifact:  doc_html
+#      latex_artifact: doc_latex
+
+#  PDFDocumentation:
+#    uses: pyTooling/Actions/.github/workflows/LaTeXDocumentation.yml@r7
+#    needs:
+#      - Documentation
+#    with:
+#      document:       "OSVVM-Scripts"
+#      latex_artifact: doc_latex
+#      pdf_artifact:   doc_pdf
+#      can-fail:       'true'
+
+  PublishToGitHubPages:
+    uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@r7
+    needs:
+      - Documentation
+#      - PDFDocumentation
+    with:
+      doc:      doc_html
