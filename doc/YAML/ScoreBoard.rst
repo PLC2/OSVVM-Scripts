@@ -1,0 +1,4 @@
+.. _YAML/ScoreBoard:
+
+ScoreBoard
+##########
