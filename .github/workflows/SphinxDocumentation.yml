@@ -116,7 +116,7 @@ jobs:
           export PYTHONPATH=$(pwd)
           
           cd "${{ inputs.doc_directory || '.' }}"
-          ./build.sh
+          ./build.sh --verbose --all
           
           tree _build
           
