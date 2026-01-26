@@ -66,13 +66,14 @@ package require fileutil
   }
   
 #  set ghdl {*}[auto_execok ghdl]
-  if { [info exists ::env(MSYSTEM)] } {
+  if {[catch {[exec which ghdl]} msg]} {
+    set ghdl ghdl   ;# not running on linux/MSYS2
+  } elseif { [info exists ::env(MSYSTEM)] } {
     # running on MSYS2 - convert which with cygpath
     set ghdl [exec cygpath -m [exec which ghdl]]
   } else {
     set ghdl [exec which ghdl]
-  }
-   
+  }  
   regexp {GHDL\s+\d+\.\d+\S*} [exec $ghdl --version] VersionString
   variable ToolVersion [regsub {GHDL\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}

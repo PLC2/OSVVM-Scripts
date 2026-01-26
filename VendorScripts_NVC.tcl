@@ -60,7 +60,9 @@
   }
   
 #  set nvc {*}[auto_execok nvc]
-  if { [info exists ::env(MSYSTEM)] } {
+  if {[catch {[exec which nvc]} msg]} {
+    set nvc nvc   ;# not running on linux/MSYS2
+  } elseif { [info exists ::env(MSYSTEM)] } {
     # running on MSYS2 - convert which with cygpath
     set nvc [exec cygpath -m [exec which nvc]]
   } else {
