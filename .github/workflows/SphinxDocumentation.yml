@@ -118,9 +118,9 @@ jobs:
           cd "${{ inputs.doc_directory || '.' }}"
           ./build.sh --verbose --all
           
+          printf "::group::${ANSI_LIGHT_BLUE}%s${ANSI_NOCOLOR}\n" "Generated documentation ..."
           tree _build
-          
-          # sphinx-build -v -n -b html -d _build/doctrees -j $(nproc) -w _build/html.log . _build/html
+          printf "::endgroup::\n"
 
       - name: 📤 Upload 'HTML Documentation' artifact
         uses: pyTooling/upload-artifact@v6

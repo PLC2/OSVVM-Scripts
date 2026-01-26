@@ -19,17 +19,17 @@ jobs:
     uses: ./.github/workflows/SphinxDocumentation.yml
     with:
       html_artifact:  doc_html
-#      latex_artifact: doc_latex
+      latex_artifact: doc_latex
 
-#  PDFDocumentation:
-#    uses: pyTooling/Actions/.github/workflows/LaTeXDocumentation.yml@r7
-#    needs:
-#      - Documentation
-#    with:
-#      document:       "OSVVM-Scripts"
-#      latex_artifact: doc_latex
-#      pdf_artifact:   doc_pdf
-#      can-fail:       'true'
+  PDFDocumentation:
+    uses: pyTooling/Actions/.github/workflows/LaTeXDocumentation.yml@r7
+    needs:
+      - Documentation
+    with:
+      document:       "OSVVMScripts"
+      latex_artifact: doc_latex
+      pdf_artifact:   doc_pdf
+      can-fail:       'true'
 
   PublishToGitHubPages:
     uses: pyTooling/Actions/.github/workflows/PublishToGitHubPages.yml@r7
