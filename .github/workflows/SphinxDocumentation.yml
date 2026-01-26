@@ -116,7 +116,7 @@ jobs:
           export PYTHONPATH=$(pwd)
           
           cd "${{ inputs.doc_directory || '.' }}"
-          ./build.sh --verbose --all
+          ./build.sh --verbose --all --html
           
           printf "::group::${ANSI_LIGHT_BLUE}%s${ANSI_NOCOLOR}\n" "Generated documentation ..."
           tree _build
@@ -144,8 +144,38 @@ jobs:
           lfs: true
           submodules: true
 
-      - name: 🔧 Install graphviz
-        run: sudo apt-get install -y --no-install-recommends graphviz
+      - name: 🔧 Install tcllib
+        run: sudo apt-get install -y --no-install-recommends tcllib
+
+      - name: 🔧 Install Ruff!
+        run: |
+          export TCLLIBPATH="$(pwd)/myTCLLibrary"
+          
+          curl -L --output ruff.zip https://github.com/apnadkarni/ruff/archive/refs/heads/master.zip
+          unzip -q ruff.zip
+          
+          mkdir -p ${TCLLIBPATH}/ruff
+          cp -R ruff-master/src/* ${TCLLIBPATH}/ruff
+          tree ${TCLLIBPATH}
+          
+          tclsh - << EOF
+          puts "auto_path:"
+          foreach path \$auto_path {
+            puts "  \$path"
+          }
+          puts ""
+          puts "Loading Ruff ..."
+          puts "Ruff version: [package require ruff]"
+          EOF
+          
+          printf -- "\n"
+          printf -- "Export environment variables:\n"
+          tee --append $GITHUB_ENV << EOF
+          TCLLIBPATH=${TCLLIBPATH}
+          EOF
+
+#      - name: 🔧 Install graphviz
+#        run: sudo apt-get install -y --no-install-recommends graphviz
 
       - name: 🐍 Setup Python ${{ inputs.python_version }}
         uses: actions/setup-python@v6
@@ -158,13 +188,15 @@ jobs:
           python -m pip install --disable-pip-version-check ${{ inputs.requirements }}
 
       - name: ☑ Generate LaTeX documentation
-#        continue-on-error: true
         run: |
           export PYTHONPATH=$(pwd)
-
+          
           cd "${{ inputs.doc_directory || '.' }}"
-          sphinx-build -v -n -b latex -d _build/doctrees -j $(nproc) -w _build/latex.log . _build/latex
-#           --builder html --doctree-dir _build/doctrees --verbose --fresh-env --write-all --nitpicky --warning-file _build/html.log . _build/html
+          ./build.sh --verbose --all --latex
+          
+          printf "::group::${ANSI_LIGHT_BLUE}%s${ANSI_NOCOLOR}\n" "Generated documentation ..."
+          tree _build
+          printf "::endgroup::\n"
 
       - name: Workaround I - https://github.com/sphinx-doc/sphinx/issues/13190
         run: |

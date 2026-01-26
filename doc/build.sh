@@ -7,7 +7,6 @@ RUFF_DIR="osvvm-scripts"
 
 # Sphinx settings
 SPHINX_BUILD_DIR="_build"
-SPHINX_HTML_DIR="${SPHINX_BUILD_DIR}/html"
 
 # Color definitions
 ANSI_RED=$'\x1b[31m'
@@ -52,6 +51,9 @@ COMMAND=1
 CLEAN=0
 RUFF=0
 SPHINX=0
+BUILDERS=()
+HTML=0
+LATEX=0
 INSTALL=0
 while [[ $# -gt 0 ]]; do
 	case "$1" in
@@ -69,6 +71,14 @@ while [[ $# -gt 0 ]]; do
 		-s|--sphinx)
 			COMMAND=3
 			SPHINX=1
+			;;
+		--html)
+			HTML=1
+			BUILDERS+=("html")
+			;;
+		--latex)
+			LATEX=1
+			BUILDERS+=("latex")
 			;;
 		-i|--install)
 			COMMAND=3
@@ -110,7 +120,10 @@ if [[ ${COMMAND} -le 1 ]]; then
 	printf "%s\n" "${ANSI_CYAN}Steps:${ANSI_NOCOLOR}"
 	printf "%s\n" "  -a --all        Run all steps (--ruff --sphinx)."
 	printf "%s\n" "  -r --ruff       Extract code documentation from TCL code using Ruff!."
-	printf "%s\n" "  -s --sphinx     Build HTML documentation using Sphinx."
+	printf "%s\n" "  -s --sphinx     Build documentation using Sphinx."
+	printf "%s\n" "                  If not specified, build only HTML variant."
+	printf "%s\n" "     --html       Build HTML documentation using Sphinx."
+	printf "%s\n" "     --latex      Build LaTeX documentation using Sphinx."
 	printf "\n"
 	printf "%s\n" "${ANSI_CYAN}Verbosity:${ANSI_NOCOLOR}"
 	printf "%s\n" "  -v --verbose    Print verbose messages."
@@ -124,6 +137,11 @@ fi
 if [[ ${COMMAND} -eq 2 ]]; then
 	RUFF=1
 	SPHINX=1
+fi
+
+if [[ ${SPHINX} -eq 1 ]] && (( HTML + LATEX == 0)); then
+	HTML=1
+	BUILDERS+=("html")
 fi
 
 # Install (or update) dependencies
@@ -216,19 +234,21 @@ fi
 
 # Build documentation using Sphinx
 if [[ ${SPHINX} -eq 1 ]]; then
-	printf -- "${ANSI_MAGENTA}[BUILD] Build documentation ...${ANSI_NOCOLOR}\n"
-	sphinxArgs=(
-		--verbose                             # increase verbosity (can be repeated)
-#		--fresh-env                           # don't use a saved environment, always read all files
-		--write-all                           # write all files (default: only write new and changed files)
-		--builder html                        # Builder = HTML
-		-d "${SPHINX_BUILD_DIR}/doctrees"     # Sphinx document tree cache
-		--jobs "$(nproc)"                     # Parallelism
-		-w "${SPHINX_HTML_DIR}.log"           # Sphinx warning file
-		.                                     # Input directory
-		"${SPHINX_HTML_DIR}"                  # Output directory
-	)
-	python -m sphinx build "${sphinxArgs[@]}"  | sed 's/^/  /'
+	for builder in "${BUILDERS[@]}"; do
+		printf -- "${ANSI_MAGENTA}[BUILD] Build '%s' documentation ...${ANSI_NOCOLOR}\n" "${builder}"
+		sphinxArgs=(
+			--verbose                                 # increase verbosity (can be repeated)
+	#		--fresh-env                               # don't use a saved environment, always read all files
+			--write-all                               # write all files (default: only write new and changed files)
+			--builder ${builder}                      # Builder is html or latex
+			-d "${SPHINX_BUILD_DIR}/doctrees"         # Sphinx document tree cache
+			--jobs "$(nproc)"                         # Parallelism
+			-w "${SPHINX_BUILD_DIR}/${builder}.log"   # Sphinx warning file
+			.                                         # Input directory
+			"${SPHINX_BUILD_DIR}/${builder}"          # Output directory
+		)
+		python -m sphinx build "${sphinxArgs[@]}"  | sed 's/^/  /'
+	done
 fi
 
 printf -- "${ANSI_MAGENTA}[BUILD] ${ANSI_LIGHT_GREEN}COMPLETED${ANSI_NOCOLOR}\n"
