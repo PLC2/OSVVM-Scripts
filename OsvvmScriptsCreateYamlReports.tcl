@@ -71,6 +71,13 @@ proc GetIsoTime {TimeSeconds} {
 }
 
 # -------------------------------------------------
+# SecondsToOsvvmTime
+#
+proc SecondsToOsvvmTime {TimeInSec} {
+  return [clock format $TimeInSec -format {%Y-%m-%d - %H:%M:%S (%Z)}]
+}
+
+# -------------------------------------------------
 proc StartBuildYaml {} {
   variable BuildStartTime
   variable BuildStartTimeMs
@@ -163,21 +170,24 @@ proc WriteIndexYaml {BuildName} {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} a]
   } else {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} w]
+    puts $RunFile "Version:    \"2026.01\""
     puts $RunFile "Builds:"
   }
   
   # WriteBuildInfoYaml $RunFile $BuildName "  - " "    "
   puts  $RunFile "  - Name:     \"$BuildName\""
   puts  $RunFile "    Status:              \"${BuildStatus}\""
-  puts  $RunFile "    Passed:              \"${TestCasesPassed}\""
-  puts  $RunFile "    Failed:              \"${TestCasesFailed}\""
-  puts  $RunFile "    Skipped:             \"${TestCasesSkipped}\""
-  puts  $RunFile "    Run:                 \"${TestCasesRun}\""
-  puts  $RunFile "    AnalyzeErrorCount:   \"$AnalyzeErrorCount\""
-  puts  $RunFile "    SimulateErrorCount:  \"$SimulateErrorCount\""
-  puts  $RunFile "    BuildErrorCode:      \"$ReportBuildErrorCode\""
+  puts  $RunFile "    Passed:              ${TestCasesPassed}"
+  puts  $RunFile "    Failed:              ${TestCasesFailed}"
+  puts  $RunFile "    Skipped:             ${TestCasesSkipped}"
+  puts  $RunFile "    Run:                 ${TestCasesRun}"
+  puts  $RunFile "    AnalyzeErrorCount:   $AnalyzeErrorCount"
+  puts  $RunFile "    SimulateErrorCount:  $SimulateErrorCount"
+  puts  $RunFile "    BuildErrorCode:      $ReportBuildErrorCode"
   puts  $RunFile "    StartTime:           \"[GetIsoTime $BuildStartTime]\""
+##!!  puts  $RunFile "    StartTime:           \"[SecondsToOsvvmTime $BuildStartTime]\""
   puts  $RunFile "    FinishTime:          \"[GetIsoTime $BuildFinishTime]\""
+##!!  puts  $RunFile "    FinishTime:          \"[SecondsToOsvvmTime $BuildFinishTime]\""
   puts  $RunFile "    Elapsed:             \"$BuildElapsedTime\""
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "    ToolName:            \"${ToolName}\""

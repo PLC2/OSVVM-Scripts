@@ -177,7 +177,7 @@ proc CreateHtmlSummary {TestDict} {
     puts $ResultsFile "          <tr><td>Finish Time</td> <td>$ReportFinishTime</td></tr>"
   } 
 
-  puts $ResultsFile "          <tr><td>Elapsed Time (h:m:s)</td>                <td>$ElapsedTimeHms</td></tr>"
+  puts $ResultsFile "          <tr><td>Elapsed Time (hh:mm:ss)</td>                <td>$ElapsedTimeHms</td></tr>"
   puts $ResultsFile "          <tr><td>Simulator (Version)</td> <td>${ReportSimulator} ($ReportSimulatorVersion)</td></tr>"
 
   if {$OsvvmVersion ne ""} {

@@ -156,7 +156,7 @@ proc CreateBuildIndexSummary  {} {
     puts $ResultsFile "            <td>[dict get $BuildItem SimulateErrorCount]</td>"
     puts $ResultsFile "            <td>[dict get $BuildItem ToolName]-[dict get $BuildItem ToolVersion]</td>"
     puts $ResultsFile "            <td>[dict get $BuildItem OsvvmVersion]</td>"
-    puts $ResultsFile "            <td>[dict get $BuildItem FinishTime]</td>"
+    puts $ResultsFile "            <td>[IsoToOsvvmTime [dict get $BuildItem FinishTime]]</td>"
     puts $ResultsFile "        </tr>"
   }
   puts $ResultsFile "        </tbody>"
