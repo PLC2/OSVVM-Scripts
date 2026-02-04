@@ -170,7 +170,7 @@ proc WriteIndexYaml {BuildName} {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} a]
   } else {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} w]
-    puts $RunFile "Version:    \"2026.01\""
+    puts $RunFile "Version:    \"${::osvvm::OsvvmIndexYamlVersion}\""
     puts $RunFile "Builds:"
   }
   
@@ -188,7 +188,7 @@ proc WriteIndexYaml {BuildName} {
 ##!!  puts  $RunFile "    StartTime:           \"[SecondsToOsvvmTime $BuildStartTime]\""
   puts  $RunFile "    FinishTime:          \"[GetIsoTime $BuildFinishTime]\""
 ##!!  puts  $RunFile "    FinishTime:          \"[SecondsToOsvvmTime $BuildFinishTime]\""
-  puts  $RunFile "    Elapsed:             \"$BuildElapsedTime\""
+  puts  $RunFile "    Elapsed:             $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "    ToolName:            \"${ToolName}\""
   } else { 
