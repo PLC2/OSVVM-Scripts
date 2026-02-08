@@ -99,18 +99,16 @@ proc CreateJunitSummary {TestDict} {
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
 
   # Print Initial Build Summary
   #  <testsuites name="Build" time="25.0" tests="20" failures="5" errors="0" skipped="2">
   puts $ResultsFile "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
   puts $ResultsFile "<testsuites "
   puts $ResultsFile "   name=\"$ReportBuildName\""
-#  puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""
   puts $ResultsFile "   timestamp=\"$ReportIsoStartTime\""
 #  puts $ResultsFile "   id=\"[dict get $BuildInfo Version]\""
   puts $ResultsFile "   time=\"$ElapsedTimeSeconds\""
-  puts $ResultsFile "   tests=\"$TestCasesRun\""
+  puts $ResultsFile "   tests=\" [expr {$TestCasesPassed + $TestCasesFailed + $TestCasesSkipped}]\""
   puts $ResultsFile "   failures=\"$TestCasesFailed\""
   puts $ResultsFile "   errors=\"0\""
   puts $ResultsFile "   skipped=\"$TestCasesSkipped\""

@@ -129,6 +129,11 @@ proc CreateBuildIndexSummary  {} {
 
   foreach BuildItem  $IndexDict {
     set BuildItemName    [dict get $BuildItem Name]
+    if { [dict exists $BuildItem Directory] } {
+      set BuildDirectory   [dict get $BuildItem Directory]
+    } else {
+      set BuildDirectory ""
+    }
     set BuildStatus      [dict get $BuildItem Status]
 
     set PassedClass  "" 
@@ -144,13 +149,16 @@ proc CreateBuildIndexSummary  {} {
     }
 
     puts $ResultsFile "          <tr>"
-#    puts $ResultsFile "            <td><a href=\"[file join $::osvvm::OutputBaseDirectory ${BuildItemName}/${BuildItemName}.html]\">${BuildItemName}</a></td>"
-    puts $ResultsFile "            <td><a href=\"${BuildItemName}/${BuildItemName}.html\">${BuildItemName}</a></td>"
+    if {$BuildDirectory ne ""} {
+      puts $ResultsFile "            <td><a href=\"${BuildDirectory}/${BuildItemName}.html\">${BuildItemName}</a></td>"
+    } else {
+      puts $ResultsFile "            <td>${BuildItemName}</a></td>"
+    }
     puts $ResultsFile "            <td ${StatusClass}>$BuildStatus</td>"
     puts $ResultsFile "            <td ${PassedClass}>[dict get $BuildItem Passed] </td>"
     puts $ResultsFile "            <td ${FailedClass}>[dict get $BuildItem Failed] </td>"
     puts $ResultsFile "            <td>[dict get $BuildItem Skipped]</td>"
-    set  BuildElapsedTime [dict get $BuildItem Elapsed]
+    set  BuildElapsedTime [expr {round([dict get $BuildItem ElapsedTime])}]
     puts $ResultsFile "            <td>[format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] </td>"
     puts $ResultsFile "            <td>[dict get $BuildItem AnalyzeErrorCount]</td>"
     puts $ResultsFile "            <td>[dict get $BuildItem SimulateErrorCount]</td>"
@@ -161,9 +169,7 @@ proc CreateBuildIndexSummary  {} {
   }
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
-  puts $ResultsFile "    </div>"
-  
-    
+  puts $ResultsFile "    </div>"  
 }
 
 

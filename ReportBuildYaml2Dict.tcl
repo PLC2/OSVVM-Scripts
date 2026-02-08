@@ -118,7 +118,6 @@ proc ReportBuildStatus {} {
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
   
   if {$BuildStatus eq "PASSED"} {
     puts "Build: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount}"
@@ -140,7 +139,6 @@ proc ElaborateTestSuites {TestDict} {
   variable TestCasesPassed 0
   variable TestCasesFailed 0
   variable TestCasesSkipped 0
-  variable TestCasesRun 0
   
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
@@ -178,7 +176,6 @@ proc ElaborateTestSuites {TestDict} {
           incr SuiteSkipped
           incr TestCasesSkipped
         } else {
-          incr TestCasesRun
           if { ${TestName} ne ${VhdlName}  } {
             incr SuiteFailed
             incr TestCasesFailed
@@ -286,8 +283,8 @@ proc GetBuildStatus {TestDict} {
     set ReportFinishTime ""
   } 
 
-  if {[dict exists $RunInfo Elapsed]} {
-    set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
+  if {[dict exists $RunInfo ElapsedTime]} {
+    set ElapsedTimeSeconds [dict get $RunInfo ElapsedTime]
   } else {
     set ElapsedTimeSeconds 0.0
   }

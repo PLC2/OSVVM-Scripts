@@ -129,7 +129,6 @@ proc CreateHtmlSummary {TestDict} {
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
   
   set PassedClass  ""
   set FailedClass  ""

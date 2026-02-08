@@ -95,7 +95,7 @@ proc StartBuildYaml {} {
 # -------------------------------------------------
 proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   variable BuildStartTime
-  variable BuildStartTimeMs
+#  variable BuildStartTimeMs
   variable BuildErrorCode
   variable AnalyzeErrorCount
   variable SimulateErrorCount
@@ -106,7 +106,8 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   puts  $RunFile "${InfoPrefix}BuildInfo:"
   puts  $RunFile "${InfoPrefix}  StartTime:            [GetIsoTime $BuildStartTime]"
   puts  $RunFile "${InfoPrefix}  FinishTime:           [GetIsoTime $BuildFinishTime]"
-  puts  $RunFile "${InfoPrefix}  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
+#  puts  $RunFile "${InfoPrefix}  ElapsedTime:              [ElapsedTimeMs $BuildStartTimeMs]"
+  puts  $RunFile "${InfoPrefix}  ElapsedTime:              $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "${InfoPrefix}  Simulator:            \"${::osvvm::ToolName}\""
   } else { 
@@ -122,7 +123,8 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
 
 # -------------------------------------------------
 proc FinishBuildYaml {BuildName} {
-  variable BuildStartTime
+  variable BuildStartTimeMs
+#  variable BuildStartTime
   variable BuildFinishTime
   variable BuildElapsedTime
 
@@ -130,7 +132,8 @@ proc FinishBuildYaml {BuildName} {
   set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
 
   set   BuildFinishTime     [clock seconds]
-  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
+  set   BuildElapsedTime    [ElapsedTimeMs $BuildStartTimeMs]
+#  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
   
   WriteBuildInfoYaml $RunFile $BuildName 
     
@@ -146,16 +149,13 @@ proc FinishBuildYaml {BuildName} {
 # -------------------------------------------------
 proc WriteIndexYaml {BuildName} {
   variable BuildStartTime
-  variable BuildStartTimeMs
+  variable BuildFinishTime
   variable BuildElapsedTime
-  variable AnalyzeErrorCount
-  variable SimulateErrorCount
   
   variable BuildStatus 
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
@@ -163,7 +163,6 @@ proc WriteIndexYaml {BuildName} {
   variable ToolArgs
   variable ToolVersion
   variable OsvvmVersion
-  variable BuildFinishTime
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   if {[file exists ${::osvvm::OsvvmIndexYamlFile}]} { 
@@ -176,19 +175,18 @@ proc WriteIndexYaml {BuildName} {
   
   # WriteBuildInfoYaml $RunFile $BuildName "  - " "    "
   puts  $RunFile "  - Name:     \"$BuildName\""
+  puts  $RunFile "    Directory:           \"${BuildName}\""
   puts  $RunFile "    Status:              \"${BuildStatus}\""
   puts  $RunFile "    Passed:              ${TestCasesPassed}"
   puts  $RunFile "    Failed:              ${TestCasesFailed}"
   puts  $RunFile "    Skipped:             ${TestCasesSkipped}"
-  puts  $RunFile "    Run:                 ${TestCasesRun}"
-  puts  $RunFile "    AnalyzeErrorCount:   $AnalyzeErrorCount"
-  puts  $RunFile "    SimulateErrorCount:  $SimulateErrorCount"
+  puts  $RunFile "    Tests:               [expr {$TestCasesPassed + $TestCasesFailed + $TestCasesSkipped}]"
+  puts  $RunFile "    AnalyzeErrorCount:   $ReportAnalyzeErrorCount"
+  puts  $RunFile "    SimulateErrorCount:  $ReportSimulateErrorCount"
   puts  $RunFile "    BuildErrorCode:      $ReportBuildErrorCode"
   puts  $RunFile "    StartTime:           \"[GetIsoTime $BuildStartTime]\""
-##!!  puts  $RunFile "    StartTime:           \"[SecondsToOsvvmTime $BuildStartTime]\""
   puts  $RunFile "    FinishTime:          \"[GetIsoTime $BuildFinishTime]\""
-##!!  puts  $RunFile "    FinishTime:          \"[SecondsToOsvvmTime $BuildFinishTime]\""
-  puts  $RunFile "    Elapsed:             $BuildElapsedTime"
+  puts  $RunFile "    ElapsedTime:             $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "    ToolName:            \"${ToolName}\""
   } else { 
@@ -221,6 +219,22 @@ proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
     puts $YamlFile "${Prefix}${DictName}:"
     foreach Name $ListValues {
       puts $YamlFile "${Prefix}  - \"${Name}\""
+    }
+  }
+}
+
+# -------------------------------------------------
+proc WriteDict2IndexYaml {YamlFile ListOfDictName {Indent "  "} } {
+  set NominalPrefix [string cat $Indent "  " ]
+  foreach DictName $ListOfDictName {
+    set Prefix [string cat $Indent "- "]
+    foreach {Name Value} $DictName {
+      if {[regexp {Version} $Name] } {
+        puts $YamlFile "${Prefix}${Name}: \"$Value\""
+      } else {
+        puts $YamlFile "${Prefix}${Name}: $Value"
+      }
+      set Prefix $NominalPrefix
     }
   }
 }
