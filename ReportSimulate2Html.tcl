@@ -54,6 +54,22 @@ package require fileutil
 
 #--------------------------------------------------------------
 proc Simulate2Html {SettingsFileWithPath} {
+  # Convert simulation yml files to test case html report
+	#
+  #  SettingsFileWithPath - Settings File for Simulation, named TestCaseName_run.yml, including the path to it.
+	#
+	# **Generates TestCaseName.html that integrates**
+  # Note if test case includes generics then TestCaseName will include _GenericValue for each generic
+  # TestCaseName_run.yml    - test case settings
+  # TestCaseName_alerts.yml - alert statistics from osvvm.AlertLogPkg
+  # TestCaseName_cov.yml    - coverage statistics from osvvm.CoveragePkg
+  # TestCasename_sb_*.yml   - scoreboard statistics from instances of osvvm.ScoreboardGenericPkg
+  #
+  # **Provides links to the following**
+  # TestCaseVhdlFileName.vhd - TestCase File Name for this test case (last file analyzed before simulate)
+  # TestCaseResultsFile.log  - Test case transcript that was opened with OSVVM's TranscriptOpen
+  # BuildName.log - Link to Simulation Results in simulator transcript file (marked with html tag)
+  #  
   variable ResultsFile
   
   variable Report2AlertYamlFile              
