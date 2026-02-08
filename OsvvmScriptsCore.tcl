@@ -427,7 +427,6 @@ proc build {{Path_Or_File "."} args} {
       
       WriteIndexYaml $BuildName
       Index2Html
-      # IndexToHtml 
 
       set BuildName ""
       set ::osvvm::HaveNotCreatedBuildOutputDirectory "true"
