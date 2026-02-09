@@ -75,10 +75,13 @@ proc ReportBuildYaml2Dict {ReportFile} {
   variable ReportFileRoot
   variable ReportBuildName
   variable BuildDict
+  variable Report2BaseDirectory
 
-  # Extract BuildName and HtmlFileName from ReportFile
-  set ReportFileRoot  [file rootname $ReportFile]
-  set ReportBuildName [file tail $ReportFileRoot]
+
+  # Extract BaseDirectory, BuildName, and HtmlFileName from ReportFile
+  set Report2BaseDirectory   [file dirname $ReportFile]    ;# Set before GetOsvvmPathSettings
+  set ReportFileRoot         [file rootname $ReportFile]
+  set ReportBuildName        [file tail $ReportFileRoot]
   
   
   # Read the YAML file into a dictionary

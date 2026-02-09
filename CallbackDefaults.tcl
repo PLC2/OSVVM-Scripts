@@ -253,6 +253,9 @@ namespace eval ::osvvm {
     set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
     # Continue current build
     puts "ReportError: Simulate2Html failed.  See previous messages for details"
+    if {$::osvvm::Debug} { 
+      puts "errorInfo:  $::osvvm::SimulateReportErrorInfo"
+    }
     
     # end current build
     # error "ReportError: Simulate2Html failed.  See previous messages"

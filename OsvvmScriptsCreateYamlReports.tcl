@@ -202,7 +202,6 @@ proc WriteIndexYaml {BuildName} {
 proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
   if {$DictValues eq ""} {
     puts $YamlFile "${Prefix}${DictName}:           null"
-#    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
     foreach {Name Value} $DictValues {
@@ -240,15 +239,24 @@ proc WriteDict2IndexYaml {YamlFile ListOfDictName {Indent "  "} } {
 }
 
 # -------------------------------------------------
-proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
-  puts $YamlFile "${Prefix}${DictName}: \"$StringValue\""
+proc WriteDictOfString2Yaml {YamlFile DictKey {StringValue ""} {Prefix ""} } {
+  puts $YamlFile "${Prefix}${DictKey}: \"$StringValue\""
+}
+
+# -------------------------------------------------
+proc WriteDictOfRelativePath2Yaml {YamlFile DictKey RelativePath {PathValue ""} {Prefix ""} } {
+  if {$PathValue ne ""} {
+    puts $YamlFile "${Prefix}${DictKey}:  \"[::fileutil::relative $RelativePath $PathValue]\""
+  } else {
+    puts $YamlFile "${Prefix}${DictKey}: \"\""
+  }
 }
 
 # -------------------------------------------------
 proc WriteOsvvmSettingsYaml {ReportFile} {
   
   puts  $ReportFile "OsvvmSettingsInfo:"
-  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""
+#  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""  ;# no absolute paths
   puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
 #  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""  
   if {$::osvvm::TranscriptExtension ne "none"} {
@@ -285,28 +293,32 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
 
 # -------------------------------------------------
 proc WriteTestCaseSettingsYaml {FileName} {
+  # Make paths relative to build directory
+  set LocalOutDir [file join [pwd] $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
 
   set  YamlFile [open ${FileName} w]
-  WriteDictOfString2Yaml $YamlFile Version $::osvvm::OsvvmTestCaseYamlVersion
+  WriteDictOfString2Yaml $YamlFile Version \"$::osvvm::OsvvmTestCaseYamlVersion\"
   WriteDictOfString2Yaml $YamlFile TestCaseName $::osvvm::TestCaseName
-  WriteDictOfString2Yaml $YamlFile TestCaseFile $::osvvm::LastAnalyzedFile
+#  WriteDictOfString2Yaml $YamlFile TestCaseFile $::osvvm::LastAnalyzedFile
+  WriteDictOfRelativePath2Yaml  $YamlFile  TestCaseFile  [file join $LocalOutDir $::osvvm::ReportsSubdirectory $::osvvm::TestSuiteName] $::osvvm::LastAnalyzedFile
 	if {[info exists ::osvvm::TestSuiteName]} {
-    WriteDictOfString2Yaml $YamlFile TestSuiteName  $::osvvm::TestSuiteName
+    set LocalTestSuiteName $::osvvm::TestSuiteName
   } else {
-    WriteDictOfString2Yaml $YamlFile TestSuiteName "Default"
+    set LocalTestSuiteName "Default"
   }
+  WriteDictOfString2Yaml $YamlFile TestSuiteName  $LocalTestSuiteName
   WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
   WriteDictOfDict2Yaml   $YamlFile Generics $::osvvm::GenericDict
+  
+  WriteDictOfRelativePath2Yaml  $YamlFile  ReportsTestSuiteDirectory  $LocalOutDir  $::osvvm::ReportsTestSuiteDirectory
+  WriteDictOfRelativePath2Yaml $YamlFile RequirementsYamlFile         $LocalOutDir $::osvvm::RequirementsYamlFile
+  WriteDictOfRelativePath2Yaml $YamlFile AlertYamlFile                $LocalOutDir $::osvvm::AlertYamlFile
+  WriteDictOfRelativePath2Yaml $YamlFile CovYamlFile                  $LocalOutDir $::osvvm::CovYamlFile
+  WriteDictOfDict2Yaml     $YamlFile ScoreboardDict                   $::osvvm::ScoreboardDict
+  WriteDictOfString2Yaml   $YamlFile TranscriptFiles                  $::osvvm::TranscriptFiles
 
-  WriteDictOfString2Yaml $YamlFile ReportsTestSuiteDirectory    $::osvvm::ReportsTestSuiteDirectory
-  WriteDictOfString2Yaml $YamlFile RequirementsYamlFile  $::osvvm::RequirementsYamlFile
-  WriteDictOfString2Yaml $YamlFile AlertYamlFile         $::osvvm::AlertYamlFile
-  WriteDictOfString2Yaml $YamlFile CovYamlFile           $::osvvm::CovYamlFile
-  WriteDictOfDict2Yaml   $YamlFile ScoreboardDict        $::osvvm::ScoreboardDict
-  WriteDictOfList2Yaml   $YamlFile TranscriptFiles       $::osvvm::TranscriptFiles
-
-  WriteDictOfString2Yaml $YamlFile TestCaseFileName      $::osvvm::TestCaseFileName
-  WriteDictOfString2Yaml $YamlFile GenericNames          $::osvvm::GenericNames
+  WriteDictOfString2Yaml $YamlFile TestCaseFileName             $::osvvm::TestCaseFileName
+  WriteDictOfString2Yaml $YamlFile GenericNames                 $::osvvm::GenericNames
 
   WriteOsvvmSettingsYaml $YamlFile
   

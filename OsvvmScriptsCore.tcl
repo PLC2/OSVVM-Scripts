@@ -1285,7 +1285,7 @@ proc AfterSimulateReports {} {
   
   WriteTestCaseSettingsYaml $TestCaseSettingsFile
 
-  Simulate2Html $TestCaseSettingsFile
+  Simulate2Html $TestCaseSettingsFile $::osvvm::OsvvmBuildOutputDirectory
   
   FinishSimulateBuildYaml 
 }
@@ -2090,7 +2090,7 @@ proc SimulateDoneMoveTestCaseFiles {} {
       set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbSourceFile]] ""]
       set SbDestFile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
       file rename -force $SbSourceFile  $SbDestFile
-      dict append ScoreboardDict $SbName $SbDestFile
+      dict append ScoreboardDict $SbName [file join ${::osvvm::ReportsSubdirectory} ${TestSuiteName} ${TestCaseFileName}_sb_${SbName}.yml]
     }
   }
   

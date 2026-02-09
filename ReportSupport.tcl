@@ -147,10 +147,10 @@ proc LinkLogoFile {ResultsFile {RelativePath ""} {LogoClass "summary-logo"}} {
 # GetOsvvmPathSettings
 #
 proc GetOsvvmPathSettings {TestDict} {
-  set SettingsInfoDict                         [dict get $TestDict OsvvmSettingsInfo]
-  variable ::osvvm::Report2BaseDirectory                [dict get $SettingsInfoDict BaseDirectory]
+  set SettingsInfoDict                                  [dict get $TestDict OsvvmSettingsInfo]
+#  variable ::osvvm::Report2BaseDirectory               [dict get $SettingsInfoDict BaseDirectory]
   variable ::osvvm::Report2ReportsSubdirectory          [dict get $SettingsInfoDict ReportsSubdirectory]
-#  variable Report2HtmlThemeSubdirectory              [dict get $SettingsInfoDict HtmlThemeSubdirectory]
+#  variable Report2HtmlThemeSubdirectory                [dict get $SettingsInfoDict HtmlThemeSubdirectory]
   variable ::osvvm::Report2SimulationLogFile            [dict get $SettingsInfoDict SimulationLogFile]
   variable ::osvvm::Report2SimulationHtmlLogFile        [dict get $SettingsInfoDict SimulationHtmlLogFile]
   variable ::osvvm::Report2RequirementsSubdirectory     [dict get $SettingsInfoDict RequirementsSubdirectory]
@@ -160,9 +160,22 @@ proc GetOsvvmPathSettings {TestDict} {
 }
 
 # -------------------------------------------------
+# GetTestCasePath
+#
+proc GetTestCasePath {DictName DictKey} {
+  set LocalValue [dict get $DictName $DictKey]
+  if {$LocalValue ne ""} {
+    return [file join $::osvvm::Report2BaseDirectory $LocalValue]
+  } else {
+    return ""
+  }
+}
+
+# -------------------------------------------------
 # GetTestCaseSettings
 #
 proc GetTestCaseSettings {SettingsFileName} {
+
   set TestDict  [::yaml::yaml2dict -file ${SettingsFileName}]
   variable ::osvvm::Report2TestCaseName                 [dict get $TestDict TestCaseName        ]
   variable ::osvvm::Report2TestCaseFile                 [dict get $TestDict TestCaseFile        ]
@@ -173,10 +186,10 @@ proc GetTestCaseSettings {SettingsFileName} {
   variable ::osvvm::Report2TestCaseFileName             [dict get $TestDict TestCaseFileName    ]
   variable ::osvvm::Report2GenericNames                 [dict get $TestDict GenericNames        ]
   
-  variable ::osvvm::Report2TestSuiteDirectory           [dict get $TestDict ReportsTestSuiteDirectory  ]
-  variable ::osvvm::Report2RequirementsYamlFile         [dict get $TestDict RequirementsYamlFile]
-  variable ::osvvm::Report2AlertYamlFile                [dict get $TestDict AlertYamlFile       ]
-  variable ::osvvm::Report2CovYamlFile                  [dict get $TestDict CovYamlFile         ]
+  variable ::osvvm::Report2TestSuiteDirectory           [file join $::osvvm::Report2BaseDirectory [dict get $TestDict ReportsTestSuiteDirectory]]
+  variable ::osvvm::Report2RequirementsYamlFile         [GetTestCasePath $TestDict RequirementsYamlFile]
+  variable ::osvvm::Report2AlertYamlFile                [GetTestCasePath $TestDict AlertYamlFile]
+  variable ::osvvm::Report2CovYamlFile                  [GetTestCasePath $TestDict CovYamlFile]
   variable ::osvvm::Report2ScoreboardDict               [dict get $TestDict ScoreboardDict      ]
   variable ::osvvm::Report2TranscriptFiles              [dict get $TestDict TranscriptFiles     ]
 
