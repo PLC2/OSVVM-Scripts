@@ -124,7 +124,7 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
 # -------------------------------------------------
 proc FinishBuildYaml {BuildName} {
   variable BuildStartTimeMs
-#  variable BuildStartTime
+  variable BuildStartTime
   variable BuildFinishTime
   variable BuildElapsedTime
 
@@ -133,7 +133,7 @@ proc FinishBuildYaml {BuildName} {
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [ElapsedTimeMs $BuildStartTimeMs]
-#  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
+  set   BuildElapsedTimeSec    [expr ($BuildFinishTime - $BuildStartTime)]
   
   WriteBuildInfoYaml $RunFile $BuildName 
     
@@ -142,7 +142,7 @@ proc FinishBuildYaml {BuildName} {
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTimeSec/(60*60))] [expr (($BuildElapsedTimeSec/60)%60)] [expr (${BuildElapsedTimeSec}%60)]] "
 }
 
 

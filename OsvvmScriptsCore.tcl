@@ -634,8 +634,8 @@ variable HaveNotCreatedBuildOutputDirectory
 variable OsvvmBuildOutputDirectory
 variable BuildName
 
-#  if {$::osvvm::BuildStarted} {}
-  if {$::osvvm::BuildName ne ""} {
+#  if {$::osvvm::BuildName ne ""} {}
+  if {$::osvvm::BuildStarted} {
     if {$HaveNotCreatedBuildOutputDirectory} {
       # When run as part of a build, use the BuildName
       set OsvvmBuildOutputDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
@@ -1195,52 +1195,61 @@ proc NoNullRangeWarning  {} {
 proc simulate {LibraryUnit args} {
   variable vendor_simulate_started
 
-  set SavedInteractive [GetInteractiveMode] 
-  if {!($::osvvm::BuildStarted)} {
+  if {$::osvvm::LastAnalyzeHasError} {
+    SkipTest $LibraryUnit "Previous analyze failed.  Skipping simulate."
+
+  } elseif {!($::osvvm::BuildStarted)} {
+    # called simulate from console - run as a build with just simulate in it.
+    set SavedInteractive [GetInteractiveMode] 
+    CheckWorkingDir
     SetInteractiveMode "true"
-    BuildName $LibraryUnit
-  }
+    set  SimProFileName [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OsvvmTempOutputDirectory OsvvmSimulateBuild.pro]
+    set  SimProFile     [open ${SimProFileName} w]
+    puts $SimProFile "simulate $LibraryUnit $args"
+    close $SimProFile
 
-  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
-  set LocalSimulateErrorInfo $::errorInfo
-  
-  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
-    # if simulate ended in error, EndSimulation to close open files.
-    # $osvvm_testbench/AlertLogPkg tests require extra run after simulate 
-    # so checking only SimulateInteractive not sufficient  
-    EndSimulation
-    unset vendor_simulate_started
-  }
-  
-  if {$::osvvm::GenerateOsvvmReports} {
-    set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
-    set LocalReportErrorInfo $::errorInfo
-  } else {
-    set ReportErrorCode 0 
-  }
+    catch [build $SimProFileName [BuildName $LibraryUnit]]  ;# Errors to std_output, but interactive and stopping anyway
 
-  # Reset Temporary Settings
-  if {[info exists ::osvvm::TestCaseName]} {
-    unset ::osvvm::TestCaseName
-  }
-  set ::osvvm::GenericDict           ""
-  set ::osvvm::GenericNames          ""
-  set ::osvvm::GenericOptions        ""
-  set ::osvvm::RunningCoSim          "false"
-  
-  if {$SimulateErrorCode != 0} {
-    CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
-  } else {
-    set ::osvvm::ConsecutiveSimulateErrors 0 
-  }
-
-  if {$ReportErrorCode != 0} {  
-    CallbackOnError_AfterSimulateReports $ReportErrMsg $LocalReportErrorInfo
-  } 
-  if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode $SavedInteractive  ; # Restore original value
-    set BuildName ""
-    set ::osvvm::HaveNotCreatedBuildOutputDirectory "true"
+    catch [file delete -force $SimProFile]  
+
+  } else {
+    set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
+    set LocalSimulateErrorInfo $::errorInfo
+    
+    if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
+      # if simulate ended in error, EndSimulation to close open files.
+      # $osvvm_testbench/AlertLogPkg tests require extra run after simulate 
+      # so checking only SimulateInteractive not sufficient  
+      EndSimulation
+      unset vendor_simulate_started
+    }
+    
+    if {$::osvvm::GenerateOsvvmReports} {
+      set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
+      set LocalReportErrorInfo $::errorInfo
+    } else {
+      set ReportErrorCode 0 
+    }
+
+    # Reset Temporary Settings
+    if {[info exists ::osvvm::TestCaseName]} {
+      unset ::osvvm::TestCaseName
+    }
+    set ::osvvm::GenericDict           ""
+    set ::osvvm::GenericNames          ""
+    set ::osvvm::GenericOptions        ""
+    set ::osvvm::RunningCoSim          "false"
+    
+    if {$SimulateErrorCode != 0} {
+      CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
+    } else {
+      set ::osvvm::ConsecutiveSimulateErrors 0 
+    }
+
+    if {$ReportErrorCode != 0} {  
+      CallbackOnError_AfterSimulateReports $ReportErrMsg $LocalReportErrorInfo
+    } 
   }
 }
 
