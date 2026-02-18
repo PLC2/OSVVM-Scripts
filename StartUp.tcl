@@ -106,11 +106,6 @@ namespace eval ::osvvm {
     if {![catch {qsim -version} msg]} {
       variable ScriptBaseName "Questa"
     }
-#    if {[info exists ::env(OSVVM_TOOL)]} {
-#      if {$::env(OSVVM_TOOL) eq "Visualizer"} {
-#        variable ScriptBaseName $::env(OSVVM_TOOL)
-#      }
-#    }
     
   } elseif {$ToolExecutableName eq "hdlclient"} {
 #    variable ScriptBaseName "Visualizer"
@@ -119,12 +114,12 @@ namespace eval ::osvvm {
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
     variable ScriptBaseName "Vivado"
 
+  } elseif {[info exist nvc_dataDir]} {
+    variable ScriptBaseName "NVC"
+
   } else {
     variable ScriptBaseName "GHDL"
-    # now done at beginning
-    # if {[info exists ::env(OSVVM_TOOL)]} {
-    #   variable ScriptBaseName $::env(OSVVM_TOOL)
-    # }
+
   }
 }
 
