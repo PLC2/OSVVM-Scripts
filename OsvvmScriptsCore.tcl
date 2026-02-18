@@ -401,27 +401,36 @@ proc build {{Path_Or_File "."} args} {
         CheckSimulationDirs  ; ##?? Creates ReportsDirectory for builds that fail.  Refactor later.
       }
       
-      set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
-      set LocalBuildYamlErrorInfo $::errorInfo
-      if {($ReportYamlErrorCode != 0) && ($::osvvm::TclDebug || $::osvvm::Debug)} {
-        # No prior call back, only depends on opening file that has already been opened
-        puts "FinishBuildYaml \$LocalBuildYamlErrorInfo: $::errorInfo"
-      }
+      if {$::osvvm::GenerateOsvvmReports} {
+        set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
+        set LocalBuildYamlErrorInfo $::errorInfo
+        if {($ReportYamlErrorCode != 0) && ($::osvvm::TclDebug || $::osvvm::Debug)} {
+          # No prior call back, only depends on opening file that has already been opened
+          puts "FinishBuildYaml \$LocalBuildYamlErrorInfo: $::errorInfo"
+        }
 
-      # Try to create reports, even if the build failed
-      set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
-      set LocalReportErrorInfo $::errorInfo
+        # Try to create reports, even if the build failed
+        set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
+        set LocalReportErrorInfo $::errorInfo
+      } else {
+        set ReportYamlErrorCode 0
+        set ReportErrorCode 0
+      }
 
       StopTranscript ${BuildName}
       
       set BuildStarted "false"
       
-      # Cannot generate html log files until transcript is closed - previous step
-      set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
-      set Log2ErrorInfo $::errorInfo
-      
-      WriteIndexYaml $BuildName
-      Index2Html
+      if {$::osvvm::GenerateOsvvmReports} {
+        # Cannot generate html log files until transcript is closed - previous step
+        set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
+        set Log2ErrorInfo $::errorInfo
+        
+        WriteIndexYaml $BuildName
+        Index2Html
+      } else {
+        set Log2ErrorCode 0
+      }
 
       set BuildName ""
       set ::osvvm::HaveNotCreatedBuildOutputDirectory "true"
@@ -464,7 +473,9 @@ proc LocalBuild {Path_Or_File args} {
   puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  StartBuildYaml  
+  if {$::osvvm::GenerateOsvvmReports} {
+    StartBuildYaml  
+  }
   
   CallbackBefore_Build ${Path_Or_File}
   LocalInclude ${Path_Or_File} {*}$args
@@ -1198,8 +1209,12 @@ proc simulate {LibraryUnit args} {
     unset vendor_simulate_started
   }
   
-  set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
-  set LocalReportErrorInfo $::errorInfo
+  if {$::osvvm::GenerateOsvvmReports} {
+    set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
+    set LocalReportErrorInfo $::errorInfo
+  } else {
+    set ReportErrorCode 0 
+  }
 
   # Reset Temporary Settings
   if {[info exists ::osvvm::TestCaseName]} {

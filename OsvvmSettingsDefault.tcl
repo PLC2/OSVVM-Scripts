@@ -111,6 +111,8 @@ namespace eval ::osvvm {
     if {![info exists FailOnEmptyTestSuite]} {
       variable FailOnEmptyTestSuite     "true"
     }
+    variable GenerateOsvvmReports      "true"
+
   #
   # Stop Counts for Failures seen by Analyze and Simulate
   #   Value 0 is special to mean, don't stop
