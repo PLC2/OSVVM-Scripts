@@ -632,8 +632,10 @@ proc CheckLibraryExists {} {
 proc SetAndCreateBuildOutputDirectory {} {
 variable HaveNotCreatedBuildOutputDirectory 
 variable OsvvmBuildOutputDirectory
+variable BuildName
 
-  if {$::osvvm::BuildStarted} {
+#  if {$::osvvm::BuildStarted} {}
+  if {$::osvvm::BuildName ne ""} {
     if {$HaveNotCreatedBuildOutputDirectory} {
       # When run as part of a build, use the BuildName
       set OsvvmBuildOutputDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
@@ -643,6 +645,7 @@ variable OsvvmBuildOutputDirectory
       }
       CreateDirectory $OsvvmBuildOutputDirectory
       CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
+      # Only run this code once per build
       set HaveNotCreatedBuildOutputDirectory "false"
     }
   } else {
@@ -1236,7 +1239,8 @@ proc simulate {LibraryUnit args} {
   } 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode $SavedInteractive  ; # Restore original value
-    Set BuildName ""
+    set BuildName ""
+    set ::osvvm::HaveNotCreatedBuildOutputDirectory "true"
   }
 }
 
