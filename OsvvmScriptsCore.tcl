@@ -399,23 +399,18 @@ proc build {{Path_Or_File "."} args} {
       set LocalBuildErrorInfo $::errorInfo
       if {$BuildErrorCode != 0} {   
         CheckSimulationDirs  ; ##?? Creates ReportsDirectory for builds that fail.  Refactor later.
-        if {$::osvvm::TclDebug} {
-          puts "LocalBuild errorInfo: $::errorInfo"
-        }
       }
       
       set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
       set LocalBuildYamlErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "FinishBuildYaml errorInfo: $::errorInfo"
+      if {($ReportYamlErrorCode != 0) && ($::osvvm::TclDebug || $::osvvm::Debug)} {
+        # No prior call back, only depends on opening file that has already been opened
+        puts "FinishBuildYaml \$LocalBuildYamlErrorInfo: $::errorInfo"
       }
 
       # Try to create reports, even if the build failed
       set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
       set LocalReportErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "AfterBuildReports errorInfo: $::errorInfo"
-      }
 
       StopTranscript ${BuildName}
       
@@ -441,12 +436,13 @@ proc build {{Path_Or_File "."} args} {
       if {$AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
         CallbackOnError_Build $Path_Or_File "Failed with Analyze Errors: $AnalyzeErrorCount and/or Simulate Errors: $SimulateErrorCount" $LocalBuildErrorInfo 
       } 
-      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} { 
         CallbackOnError_AfterBuildReports $LocalReportErrorInfo
       } 
       # Fail on Test Case Errors
       if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
-          error "Test finished with Test Case Errors"
+          puts "Test finished with Test Case Errors. Return -code 1"
+          return -code 1
       }
       # Fail on Report / Script Errors?
       if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
@@ -1188,6 +1184,7 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
+    BuildName $LibraryUnit
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1200,8 +1197,6 @@ proc simulate {LibraryUnit args} {
     EndSimulation
     unset vendor_simulate_started
   }
-  
-  SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
@@ -1224,6 +1219,10 @@ proc simulate {LibraryUnit args} {
   if {$ReportErrorCode != 0} {  
     CallbackOnError_AfterSimulateReports $ReportErrMsg $LocalReportErrorInfo
   } 
+  if {!($::osvvm::BuildStarted)} {
+    SetInteractiveMode $SavedInteractive  ; # Restore original value
+    Set BuildName ""
+  }
 }
 
 proc LocalSimulate {LibraryUnit args} {
