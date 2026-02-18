@@ -127,15 +127,13 @@ proc CreateBuildIndexSummary  {} {
 
   puts $ResultsFile "        <tbody>"
 
-  foreach BuildItem  $IndexDict {
-    set BuildItemName    [dict get $BuildItem Name]
-    if { [dict exists $BuildItem Directory] } {
-      set BuildDirectory   [dict get $BuildItem Directory]
-    } else {
-      set BuildDirectory ""
-    }
-    set BuildStatus      [dict get $BuildItem Status]
+  set NoInfoDict {Name NA Directory "" Status FAILED Passed 0 Failed 1 Skipped 0 Tests 0 AnalyzeErrorCount 0 SimulateErrorCount 0 BuildErrorCode 0 StartTime 2011-02-07T12:00:00-08:00 FinishTime 2012-01-09T12:00:00-08:00 ElapsedTime 0.0 ToolName OsvvmNameDay ToolVersion 0.1 OsvvmVersion 2012.01}
 
+  foreach RawBuildItem  $IndexDict {
+    set BuildItem        [dict merge $NoInfoDict $RawBuildItem]
+    set BuildItemName    [dict get $BuildItem Name]
+    set BuildDirectory   [dict get $BuildItem Directory]
+    set BuildStatus      [dict get $BuildItem Status]
     set PassedClass  "" 
     set FailedClass  "" 
     if { ${BuildStatus} eq "PASSED" } {
