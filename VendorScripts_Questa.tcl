@@ -317,6 +317,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   variable ExtendedOptimizeOptions
   variable ExtendedSimulateOptions
+  variable CoverageSimulateOptions 
 
 #  set SimTempDirectory $::osvvm::ReportsTestSuiteDirectory 
   set SimTempDirectory [file join $::osvvm::VhdlLibraryFullPath SimTemp $::osvvm::TestSuiteName] 
