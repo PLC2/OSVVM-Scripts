@@ -67,6 +67,7 @@ namespace eval ::osvvm {
     if {$LocalLogType eq "html"} {
       set HtmlFile [file join ${LogDir} ${LogName}_log.html]
       set HtmlFileHandle [open $HtmlFile w]
+      # Refactor into CreateHeaderLog2Html
       puts $HtmlFileHandle "<html>"
       puts $HtmlFileHandle "<style>"
       puts $HtmlFileHandle "details > summary {"
