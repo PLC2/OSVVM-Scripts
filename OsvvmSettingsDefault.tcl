@@ -60,7 +60,8 @@ namespace eval ::osvvm {
     # CurrentWorkingDirectory is a relative path to the scripts currently running 
     variable CurrentWorkingDirectory ""
     # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
-    variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"
+    # ** Note it is intentionally different from InvalidDirectory
+    variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"  ;# **
   
   #
   # Directory structure and results file management
@@ -95,17 +96,21 @@ namespace eval ::osvvm {
 
   # 
   # TCL Error signaling during a build 
+  #   If statements make the persistent with running StartUp
   #
+    
     if {![info exists FailOnBuildErrors]} {
-      variable FailOnBuildErrors        "true"
+      variable FailOnBuildErrors        "false"
     }
     if {![info exists FailOnReportErrors]} {
       variable FailOnReportErrors       "false"
     }
     if {![info exists FailOnTestCaseErrors]} {
       variable FailOnTestCaseErrors     "false"
-  }
-  
+    }
+    if {![info exists FailOnEmptyTestSuite]} {
+      variable FailOnEmptyTestSuite     "true"
+    }
   #
   # Stop Counts for Failures seen by Analyze and Simulate
   #   Value 0 is special to mean, don't stop

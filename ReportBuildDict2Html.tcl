@@ -392,7 +392,12 @@ proc CreateTestCaseSummaries {TestDict} {
           }
         }
         puts $ResultsFile "          <tr>"
-        puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
+        if {($TestStatus eq "PASSED") || ($TestStatus eq "FAILED")} {
+          puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
+        } else {
+#!! Long term link to place SkipTest is called in the build log output.
+          puts $ResultsFile "            <td>${TestCaseName}</td>"
+        }
         puts $ResultsFile "            <td ${StatusClass}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "            <td ${PassedClass}>[dict get $TestResults AffirmCount]</td>"

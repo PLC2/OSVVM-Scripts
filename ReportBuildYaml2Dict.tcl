@@ -205,11 +205,18 @@ proc ElaborateTestSuites {TestDict} {
       } else {
         set SuiteElapsedTime 0
       }
-      if { $SuitePassed > 0 && $SuiteFailed == 0 } {
-        set SuiteStatus "PASSED"
-      } else {
+      if {$SuiteFailed > 0} {
         set SuiteStatus "FAILED"
         set BuildStatus "FAILED"
+      } elseif { $SuitePassed > 0 } {
+        set SuiteStatus "PASSED"
+      } elseif { $SuiteSkipped > 0 } {
+        set SuiteStatus "SKIPPED"
+      } else {
+        set SuiteStatus "EMPTY"
+        if {$::osvvm::FailOnEmptyTestSuite} {
+          set BuildStatus "FAILED"
+        }
       }
       set SuiteDict [dict create Name       $SuiteName]
       dict append SuiteDict Status          $SuiteStatus
