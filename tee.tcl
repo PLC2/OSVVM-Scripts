@@ -50,7 +50,9 @@ proc tee::initialize {fd handle mode} {
 }
 
 proc tee::finalize {fd handle} {
-    close $fd
+    if {$fd in [chan names]} {
+        close $fd
+    }
 }
 
 proc tee::write {fd handle buffer} {

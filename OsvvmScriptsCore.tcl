@@ -735,7 +735,7 @@ proc StartTranscript {} {
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   
 #  if {[llength [info procs vendor_StartTranscript]] > 0} {}
-  if {![catch {info body vendor_StartTranscript} err]} {
+  if {[info procs vendor_StartTranscript] ne ""} {
     vendor_StartTranscript $TempTranscriptName
   } else {
     DefaultVendor_StartTranscript $TempTranscriptName
@@ -772,7 +772,7 @@ proc StopTranscript {{FileBaseName ""}} {
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   set TranscriptFileName [file join ${LogDirectory} ${FileBaseName}.log]
   # if {[llength [info procs vendor_StopTranscript]] > 0} {}
-  if {![catch {info body vendor_StopTranscript} err]} {
+  if {[info procs vendor_StopTranscript] ne ""} {
     vendor_StopTranscript $TempTranscriptName
 #    file rename -force ${TempTranscriptName} ${TranscriptFileName}
     file copy   -force ${TempTranscriptName} ${TranscriptFileName}
