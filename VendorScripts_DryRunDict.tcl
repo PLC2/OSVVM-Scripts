@@ -103,11 +103,19 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 proc vendor_analyze_vhdl {LibraryName FileName args} {
   dict lappend ::osvvm::AnalyzeDict $LibraryName \
     [dict create FileName [file normalize $FileName] LanguageVersion ${::osvvm::VhdlVersion} ]
+  lappend ::osvvm::AnalyzeOrderList \
+    [dict create FileName [file normalize $FileName] \
+      Library $LibraryName \
+      LanguageVersion ${::osvvm::VhdlVersion} ]
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
   dict lappend ::osvvm::AnalyzeDict $LibraryName \
     [dict create FileName [file normalize $FileName] LanguageVersion ${::osvvm::VhdlVersion} ]
+  lappend ::osvvm::AnalyzeOrderList \
+    [dict create FileName [file normalize $FileName] \
+      Library $LibraryName \
+      LanguageVersion ${::osvvm::VhdlVersion} ]
 }
 
 # -------------------------------------------------
