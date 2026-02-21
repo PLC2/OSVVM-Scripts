@@ -65,7 +65,7 @@ package require fileutil
     variable shell ""
     variable SiemensSimulateOptions ""
     if {[batch_mode]} {
-      variable ToolArgs $argv
+      variable ToolArgs $::argv
       variable NoGui "true"
       variable SiemensSimulateOptions "-batch"
       variable DebugOptions "-debug"

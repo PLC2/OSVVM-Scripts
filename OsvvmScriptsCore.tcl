@@ -450,8 +450,7 @@ proc build {{Path_Or_File "."} args} {
       } 
       # Fail on Test Case Errors
       if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
-          puts "Test finished with Test Case Errors. Return -code 1"
-          return -code 1
+        error "Test finished with Test Case Errors."
       }
       # Fail on Report / Script Errors?
       if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
@@ -774,18 +773,20 @@ proc StopTranscript {{FileBaseName ""}} {
   # if {[llength [info procs vendor_StopTranscript]] > 0} {}
   if {[info procs vendor_StopTranscript] ne ""} {
     vendor_StopTranscript $TempTranscriptName
-#    file rename -force ${TempTranscriptName} ${TranscriptFileName}
-    file copy   -force ${TempTranscriptName} ${TranscriptFileName}
-    file delete -force ${TempTranscriptName} 
-
-  } else {
-    DefaultVendor_StopTranscript $TempTranscriptName
-    if {$::osvvm::GotTee} {
-#       file rename -force ${TempTranscriptName} ${TranscriptFileName}
+    if {[file exists $TempTranscriptName]} {
       file copy   -force ${TempTranscriptName} ${TranscriptFileName}
       file delete -force ${TempTranscriptName} 
-    } else {
-      file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+    }
+  } else {
+    DefaultVendor_StopTranscript $TempTranscriptName
+    if {[file exists $TempTranscriptName]} {
+      if {$::osvvm::GotTee} {
+  #       file rename -force ${TempTranscriptName} ${TranscriptFileName}
+        file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+        file delete -force ${TempTranscriptName} 
+      } else {
+        file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+      }
     }
   }
 }

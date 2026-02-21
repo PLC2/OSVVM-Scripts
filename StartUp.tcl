@@ -114,7 +114,7 @@ namespace eval ::osvvm {
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
     variable ScriptBaseName "Vivado"
 
-  } elseif {[info exist nvc_dataDir]} {
+  } elseif {[info exist ::nvc_dataDir]} {
     variable ScriptBaseName "NVC"
 
   } else {

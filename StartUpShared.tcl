@@ -80,6 +80,7 @@ source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl   ;#  
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl                ;#  OSVVM Core API
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsSimulateSupport.tcl     ;#  OSVVM Simulate Support Scripts - should this be called by OsvvmScriptsCore after proc simulate?
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl          ;#  OSVVM API for file creation
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsTranslate.tcl           ;#  OSVVM Create Project files for other tools
 
 # --------------------------------
 # Load Vendor Script Default settings

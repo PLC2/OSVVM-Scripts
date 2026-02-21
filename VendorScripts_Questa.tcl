@@ -81,7 +81,7 @@ package require fileutil
   if {![catch {batch_mode} msg]} {
     if {[batch_mode]} {
       variable NoGui "true"
-      if {[regexp {\-batch} $argv]} {
+      if {[regexp {\-batch} $::argv]} {
         variable EnableTranscriptInBatchMode "false"
 #        variable SiemensSimulateOptions -batch  
         variable SiemensSimulateOptions -c  
