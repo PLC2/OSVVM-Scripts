@@ -108,7 +108,7 @@ proc CreateJunitSummary {TestDict} {
   puts $ResultsFile "   timestamp=\"$ReportIsoStartTime\""
 #  puts $ResultsFile "   id=\"[dict get $BuildInfo Version]\""
   puts $ResultsFile "   time=\"$ElapsedTimeSeconds\""
-  puts $ResultsFile "   tests=\" [expr {$TestCasesPassed + $TestCasesFailed + $TestCasesSkipped}]\""
+  puts $ResultsFile "   tests=\"[expr {$TestCasesPassed + $TestCasesFailed + $TestCasesSkipped}]\""
   puts $ResultsFile "   failures=\"$TestCasesFailed\""
   puts $ResultsFile "   errors=\"0\""
   puts $ResultsFile "   skipped=\"$TestCasesSkipped\""
