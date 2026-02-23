@@ -1197,7 +1197,7 @@ proc simulate {LibraryUnit args} {
   variable vendor_simulate_started
 
   if {$::osvvm::LastAnalyzeHasError} {
-    SkipTest $LibraryUnit "Previous analyze failed.  Skipping simulate."
+    AnalyzeFailed $LibraryUnit "Previous analyze failed.  Skipping simulate."
 
   } elseif {!($::osvvm::BuildStarted)} {
     # called simulate from console - run as a build with just simulate in it.
@@ -1294,13 +1294,6 @@ proc LocalSimulate {LibraryUnit args} {
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
-# This will not try to start a sim if LastAnalyzeHasError
-# Removed as found better work around to issue
-#    if {$::osvvm::LastAnalyzeHasError} {
-#      puts "Last Analyze has an error. Skipping simulation"
-#      return 
-#    } else {
-#    }
     CallbackBefore_Simulate $LibraryUnit $args
     vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
     CallbackAfter_Simulate  $LibraryUnit $args
@@ -1536,6 +1529,17 @@ proc SkipTest { {FileName "NotProvided.vhd"} {Reason "Not Provided"} } {
   puts "SkipTest $FileName $Reason"
   
   SkipTestBuildYaml $SimName $Reason
+}
+
+
+# -------------------------------------------------
+# AnalyzeFailed
+#
+proc AnalyzeFailed { {LibraryUnit "NotProvided"} {Reason "Not Provided"} } {
+
+  puts "SimulateError: simulate $LibraryUnit $Reason"
+  
+  AnalyzeFailedBuildYaml $LibraryUnit $Reason
 }
 
 

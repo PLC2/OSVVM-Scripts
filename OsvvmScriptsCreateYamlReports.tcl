@@ -401,7 +401,24 @@ proc SkipTestBuildYaml {SimName Reason} {
   puts  $RunFile "      - TestCaseName: $SimName"
   puts  $RunFile "        Name: $SimName"
   puts  $RunFile "        Status: SKIPPED"
-  puts  $RunFile "        Results: {Reason: \"$Reason\"}"
+  puts  $RunFile "        Results: null"
+  puts  $RunFile "        Reason: \"$Reason\""
+  puts  $RunFile "        ElapsedTime: 0"
+  close $RunFile
+}
+
+# -------------------------------------------------
+# SkipTest
+#
+proc AnalyzeFailedBuildYaml {LibraryUnit Reason} {
+
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
+  puts  $RunFile "      - TestCaseName: $LibraryUnit"
+  puts  $RunFile "        Name: $LibraryUnit"
+  puts  $RunFile "        Status: ANALYZE_FAILED"
+  puts  $RunFile "        Results: null"
+  puts  $RunFile "        Reason: \"$Reason\""
+  puts  $RunFile "        ElapsedTime: 0"
   close $RunFile
 }
 

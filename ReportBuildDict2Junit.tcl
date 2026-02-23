@@ -141,7 +141,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
 
       set TestName    [dict get $TestCase TestCaseName]
       
-      if { [dict exists $TestCase Results] } { 
+      if { [dict exists $TestCase Results] } {    ;# Check for Status instead?
         set TestResults [dict get $TestCase Results]
         if { [dict exists $TestResults AffirmCount] } {
           set AffirmCount [dict get $TestResults AffirmCount]
@@ -150,16 +150,19 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         }
         set TestStatus  [dict get $TestCase Status]
         set VhdlName    [dict get $TestCase Name]
-        if { $TestStatus ne "SKIPPED" } {
-          if {[dict exists $TestCase ElapsedTime]} {
-            set ElapsedTime [dict get $TestCase ElapsedTime]
-          } else {
-            set ElapsedTime missing
-          }
+        if {[dict exists $TestCase ElapsedTime]} {
+          set ElapsedTime [dict get $TestCase ElapsedTime]
         } else {
-          set ElapsedTime 0
-        } 
+          set ElapsedTime missing
+        }
+        if { $TestStatus ne "ANALYZE_FAILED" } {
+          set TestStatus FAILED
+        }
+        if {[dict exists $TestCase Reason]} {
+          set Reason [dict exists $TestCase Reason] 
+        } else {
         set Reason "Test Case Error"
+        }
       } else {
         set TestStatus  "FAILED"
         set VhdlName    $TestName
@@ -201,7 +204,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         puts $ResultsFile "<failure message=\"$Reason\">$Reason</failure>"
       
       } elseif { $TestStatus eq "SKIPPED" } {
-        set Reason [dict get $TestResults Reason]
+#        set Reason [dict get $TestCase Reason]
         puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
       }
       puts $ResultsFile "</testcase>"

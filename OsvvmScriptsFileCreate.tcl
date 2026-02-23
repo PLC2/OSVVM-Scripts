@@ -111,7 +111,7 @@ proc CreateOsvvmScriptSettingsPkg {SettingsDirectory} {
   puts $FileHandle "  constant OSVVM_BUILD_YAML_FILE        : string := \"${::osvvm::OsvvmTempYamlFile}\" ;"
   puts $FileHandle "  constant OSVVM_TRANSCRIPT_YAML_FILE   : string := \"${::osvvm::TempTranscriptYamlFile}\" ;"
   puts $FileHandle "  constant OSVVM_REVISION               : string := \"${::osvvm::OsvvmVersion}\" ;"
-  puts $FileHandle "  constant OSVVM_SETTINGS_REVISION      : string := \"${::osvvm::OsvvmVersionCompatibility}\" ;"
+  puts $FileHandle "  constant OSVVM_SETTINGS_REVISION      : string := \"${::osvvm::OsvvmVersionCompatibility}\" ; -- For Settings" 
   puts $FileHandle "  constant ALERT_YAML_VERSION           : string := \"${::osvvm::OsvvmAlertYamlVersion}\" ;" 
   puts $FileHandle "  constant SCOREBOARD_YAML_VERSION      : string := \"${::osvvm::OsvvmScoreboardYamlVersion}\" ;" 
   puts $FileHandle "  constant COVERAGE_YAML_VERSION        : string := \"${::osvvm::OsvvmCoverageYamlVersion}\" ;" 

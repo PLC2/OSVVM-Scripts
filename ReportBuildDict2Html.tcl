@@ -325,9 +325,9 @@ proc CreateTestCaseSummaries {TestDict} {
         if { [dict exists $TestCase Status] } { 
           set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
-          if { $TestStatus eq "SKIPPED" } {
+          if { $TestStatus eq "SKIPPED" || $TestStatus eq "ANALYZE_FAILED"} {
             set TestReport  "NONE"
-            set Reason      [dict get $TestResults Reason]
+            set Reason      [dict get $TestCase Reason]
           } else {
             set TestReport  "REPORT"
             set VhdlName    [dict get $TestCase Name]

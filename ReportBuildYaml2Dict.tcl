@@ -156,10 +156,13 @@ proc ElaborateTestSuites {TestDict} {
       set SuiteName [dict get $TestSuite Name]
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName    [dict get $TestCase TestCaseName]
+#!! This could all be simplified with a dict merge that sets TestStatus "FAILED", TestReqGoal 0, TestReqPassed 0, DisabledAlertCount 0
+#!! Independent of SkipTest, ..., VHDL side will fail with no results and no TestStatus
+#!! Good defaults could minimize info provided by SkipTest and others
         if { [dict exists $TestCase Results] } { 
           set TestStatus  [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
-          if { $TestStatus ne "SKIPPED" } {
+          if { $TestStatus ne "SKIPPED" && $TestStatus ne "ANALYZE_FAILED"} {
             set TestReqGoal   [dict get $TestResults RequirementsGoal]
             set TestReqPassed [dict get $TestResults RequirementsPassed]
             set SuiteDisabledAlerts [expr $SuiteDisabledAlerts + [SumAlertCount [dict get $TestResults DisabledAlertCount]]]
@@ -170,11 +173,14 @@ proc ElaborateTestSuites {TestDict} {
             set VhdlName $TestName
           }
         } else {
+          # Nothing is there
           set TestStatus  "FAILED"
           set TestReqGoal   0
           set TestReqPassed 0
           set VhdlName $TestName
         }
+        # Count results.
+        # If test cases run parallel, must be done here. 
         if { $TestStatus eq "SKIPPED" } {
           incr SuiteSkipped
           incr TestCasesSkipped
@@ -192,7 +198,7 @@ proc ElaborateTestSuites {TestDict} {
               }
             }
           } else {
-            # TestStatus = FAILED or TIMEOUT
+            # TestStatus = FAILED or TIMEOUT or ANALYZE_FAILED
             # TestStatus = NOCHECKS if OsvvmVersionCompatibility is 2024.07 (or later) or
             #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed
@@ -254,6 +260,7 @@ proc GetBuildStatus {TestDict} {
   variable RequirementsRelativeHtml
 
 
+#!! Simplify with dict merge
   if { [dict exists $TestDict BuildInfo] } {
     set RunInfo   [dict get $TestDict BuildInfo] 
   } else {
