@@ -90,7 +90,7 @@ proc ScriptCreateIfWaveDoExists {ScriptToRun LibraryUnit} {
   variable ScriptFile
   
   if {[file exists $ScriptToRun]} {
-    puts $ScriptFile  "  if {[catch {source $ScriptToRun} errorMsg]} {"
+    puts $ScriptFile  "  if {\[catch {source $ScriptToRun} errorMsg\]} {"
     puts $ScriptFile  "    CallbackOnError_WaveDo \$errorMsg \$::errorInfo [file dirname $ScriptToRun] $LibraryUnit" 
     puts $ScriptFile  "  }"
   }
