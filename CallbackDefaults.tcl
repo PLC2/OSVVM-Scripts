@@ -339,7 +339,7 @@ namespace eval ::osvvm {
     puts "ReportError: during $ProcName $Message failed: $errmsg"
     
         # Reference or print ErrorInfo for this error 
-    if {$::osvvm::ScriptDebug} {
+    if {$::osvvm::ReportDebug} {
 #      puts ${::osvvm::${ProcName}ErrorInfo}
       puts ${::osvvm::ReportErrorInfo}
     } else {

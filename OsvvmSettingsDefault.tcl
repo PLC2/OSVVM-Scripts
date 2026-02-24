@@ -176,13 +176,9 @@ namespace eval ::osvvm {
   #
   #  OsvvmDeveloper Controls
   #
-    variable ScriptDebug         "false"
-    variable CreateVti           "false"
-
-  #
-  #  Debug Controls
-  #
-  variable TclDebug                    "false"
+    variable TclDebug                     "false"
+    variable ReportDebug                  "false"
+    variable OsvvmDevDeriveArchitectures  "false"
 
   #
   # Second Top

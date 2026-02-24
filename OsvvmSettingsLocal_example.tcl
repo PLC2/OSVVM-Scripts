@@ -189,7 +189,15 @@ namespace eval ::osvvm {
     #  variable Debug               "false"
     #  variable LogSignalsIsSet     "false"
     #  variable LogSignals          "false"
-    #  variable ScriptDebug         "false"
+    #  variable ReportDebug         "false"
+
+  #
+  #  OsvvmDeveloper Controls
+  #
+    # variable TclDebug                     "false"
+    # variable ReportDebug                  "false"
+    # variable OsvvmDevDeriveArchitectures  "false"
+
 
   # 
   # Extended Analyze and Simulate Options
