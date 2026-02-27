@@ -66,6 +66,9 @@ proc CreateBuildReports {ReportFile} {
   ReportBuildYaml2Dict ${ReportFile}
   ReportBuildDict2Html
   ReportBuildDict2Junit
+  if {!$::osvvm::TclDebug} {
+    set ::osvvm::BuildDict ""
+  }
 }
 
 # -------------------------------------------------
