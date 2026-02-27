@@ -297,7 +297,7 @@ proc WriteTestCaseSettingsYaml {FileName} {
   set LocalOutDir [file join [pwd] $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
 
   set  YamlFile [open ${FileName} w]
-  WriteDictOfString2Yaml $YamlFile Version \"$::osvvm::OsvvmTestCaseYamlVersion\"
+  WriteDictOfString2Yaml $YamlFile Version $::osvvm::OsvvmTestCaseYamlVersion
   WriteDictOfString2Yaml $YamlFile TestCaseName $::osvvm::TestCaseName
 #  WriteDictOfString2Yaml $YamlFile TestCaseFile $::osvvm::LastAnalyzedFile
   WriteDictOfRelativePath2Yaml  $YamlFile  TestCaseFile  [file join $LocalOutDir $::osvvm::ReportsSubdirectory $::osvvm::TestSuiteName] $::osvvm::LastAnalyzedFile
