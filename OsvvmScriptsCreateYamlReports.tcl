@@ -71,6 +71,13 @@ proc GetIsoTime {TimeSeconds} {
 }
 
 # -------------------------------------------------
+# SecondsToOsvvmTime
+#
+proc SecondsToOsvvmTime {TimeInSec} {
+  return [clock format $TimeInSec -format {%Y-%m-%d - %H:%M:%S (%Z)}]
+}
+
+# -------------------------------------------------
 proc StartBuildYaml {} {
   variable BuildStartTime
   variable BuildStartTimeMs
@@ -88,7 +95,7 @@ proc StartBuildYaml {} {
 # -------------------------------------------------
 proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   variable BuildStartTime
-  variable BuildStartTimeMs
+#  variable BuildStartTimeMs
   variable BuildErrorCode
   variable AnalyzeErrorCount
   variable SimulateErrorCount
@@ -99,7 +106,8 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   puts  $RunFile "${InfoPrefix}BuildInfo:"
   puts  $RunFile "${InfoPrefix}  StartTime:            [GetIsoTime $BuildStartTime]"
   puts  $RunFile "${InfoPrefix}  FinishTime:           [GetIsoTime $BuildFinishTime]"
-  puts  $RunFile "${InfoPrefix}  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
+#  puts  $RunFile "${InfoPrefix}  ElapsedTime:              [ElapsedTimeMs $BuildStartTimeMs]"
+  puts  $RunFile "${InfoPrefix}  ElapsedTime:              $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "${InfoPrefix}  Simulator:            \"${::osvvm::ToolName}\""
   } else { 
@@ -115,6 +123,7 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
 
 # -------------------------------------------------
 proc FinishBuildYaml {BuildName} {
+  variable BuildStartTimeMs
   variable BuildStartTime
   variable BuildFinishTime
   variable BuildElapsedTime
@@ -123,7 +132,8 @@ proc FinishBuildYaml {BuildName} {
   set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
 
   set   BuildFinishTime     [clock seconds]
-  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
+  set   BuildElapsedTime    [ElapsedTimeMs $BuildStartTimeMs]
+  set   BuildElapsedTimeSec    [expr ($BuildFinishTime - $BuildStartTime)]
   
   WriteBuildInfoYaml $RunFile $BuildName 
     
@@ -132,23 +142,20 @@ proc FinishBuildYaml {BuildName} {
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTimeSec/(60*60))] [expr (($BuildElapsedTimeSec/60)%60)] [expr (${BuildElapsedTimeSec}%60)]] "
 }
 
 
 # -------------------------------------------------
 proc WriteIndexYaml {BuildName} {
   variable BuildStartTime
-  variable BuildStartTimeMs
+  variable BuildFinishTime
   variable BuildElapsedTime
-  variable AnalyzeErrorCount
-  variable SimulateErrorCount
   
   variable BuildStatus 
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
@@ -156,29 +163,30 @@ proc WriteIndexYaml {BuildName} {
   variable ToolArgs
   variable ToolVersion
   variable OsvvmVersion
-  variable BuildFinishTime
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   if {[file exists ${::osvvm::OsvvmIndexYamlFile}]} { 
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} a]
   } else {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} w]
+    puts $RunFile "Version:    \"${::osvvm::OsvvmIndexYamlVersion}\""
     puts $RunFile "Builds:"
   }
   
   # WriteBuildInfoYaml $RunFile $BuildName "  - " "    "
   puts  $RunFile "  - Name:     \"$BuildName\""
+  puts  $RunFile "    Directory:           \"${BuildName}\""
   puts  $RunFile "    Status:              \"${BuildStatus}\""
-  puts  $RunFile "    Passed:              \"${TestCasesPassed}\""
-  puts  $RunFile "    Failed:              \"${TestCasesFailed}\""
-  puts  $RunFile "    Skipped:             \"${TestCasesSkipped}\""
-  puts  $RunFile "    Run:                 \"${TestCasesRun}\""
-  puts  $RunFile "    AnalyzeErrorCount:   \"$AnalyzeErrorCount\""
-  puts  $RunFile "    SimulateErrorCount:  \"$SimulateErrorCount\""
-  puts  $RunFile "    BuildErrorCode:      \"$ReportBuildErrorCode\""
+  puts  $RunFile "    Passed:              ${TestCasesPassed}"
+  puts  $RunFile "    Failed:              ${TestCasesFailed}"
+  puts  $RunFile "    Skipped:             ${TestCasesSkipped}"
+  puts  $RunFile "    Tests:               [expr {$TestCasesPassed + $TestCasesFailed + $TestCasesSkipped}]"
+  puts  $RunFile "    AnalyzeErrorCount:   $ReportAnalyzeErrorCount"
+  puts  $RunFile "    SimulateErrorCount:  $ReportSimulateErrorCount"
+  puts  $RunFile "    BuildErrorCode:      $ReportBuildErrorCode"
   puts  $RunFile "    StartTime:           \"[GetIsoTime $BuildStartTime]\""
   puts  $RunFile "    FinishTime:          \"[GetIsoTime $BuildFinishTime]\""
-  puts  $RunFile "    Elapsed:             \"$BuildElapsedTime\""
+  puts  $RunFile "    ElapsedTime:             $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "    ToolName:            \"${ToolName}\""
   } else { 
@@ -194,7 +202,6 @@ proc WriteIndexYaml {BuildName} {
 proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
   if {$DictValues eq ""} {
     puts $YamlFile "${Prefix}${DictName}:           null"
-#    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
     foreach {Name Value} $DictValues {
@@ -216,15 +223,40 @@ proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
 }
 
 # -------------------------------------------------
-proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
-  puts $YamlFile "${Prefix}${DictName}: \"$StringValue\""
+proc WriteDict2IndexYaml {YamlFile ListOfDictName {Indent "  "} } {
+  set NominalPrefix [string cat $Indent "  " ]
+  foreach DictName $ListOfDictName {
+    set Prefix [string cat $Indent "- "]
+    foreach {Name Value} $DictName {
+      if {[regexp {Version} $Name] } {
+        puts $YamlFile "${Prefix}${Name}: \"$Value\""
+      } else {
+        puts $YamlFile "${Prefix}${Name}: $Value"
+      }
+      set Prefix $NominalPrefix
+    }
+  }
+}
+
+# -------------------------------------------------
+proc WriteDictOfString2Yaml {YamlFile DictKey {StringValue ""} {Prefix ""} } {
+  puts $YamlFile "${Prefix}${DictKey}: \"$StringValue\""
+}
+
+# -------------------------------------------------
+proc WriteDictOfRelativePath2Yaml {YamlFile DictKey RelativePath {PathValue ""} {Prefix ""} } {
+  if {$PathValue ne ""} {
+    puts $YamlFile "${Prefix}${DictKey}:  \"[::fileutil::relative $RelativePath $PathValue]\""
+  } else {
+    puts $YamlFile "${Prefix}${DictKey}: \"\""
+  }
 }
 
 # -------------------------------------------------
 proc WriteOsvvmSettingsYaml {ReportFile} {
   
   puts  $ReportFile "OsvvmSettingsInfo:"
-  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""
+#  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""  ;# no absolute paths
   puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
 #  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""  
   if {$::osvvm::TranscriptExtension ne "none"} {
@@ -261,28 +293,32 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
 
 # -------------------------------------------------
 proc WriteTestCaseSettingsYaml {FileName} {
+  # Make paths relative to build directory
+  set LocalOutDir [file join [pwd] $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
 
   set  YamlFile [open ${FileName} w]
   WriteDictOfString2Yaml $YamlFile Version $::osvvm::OsvvmTestCaseYamlVersion
   WriteDictOfString2Yaml $YamlFile TestCaseName $::osvvm::TestCaseName
-  WriteDictOfString2Yaml $YamlFile TestCaseFile $::osvvm::LastAnalyzedFile
+#  WriteDictOfString2Yaml $YamlFile TestCaseFile $::osvvm::LastAnalyzedFile
+  WriteDictOfRelativePath2Yaml  $YamlFile  TestCaseFile  [file join $LocalOutDir $::osvvm::ReportsSubdirectory $::osvvm::TestSuiteName] $::osvvm::LastAnalyzedFile
 	if {[info exists ::osvvm::TestSuiteName]} {
-    WriteDictOfString2Yaml $YamlFile TestSuiteName  $::osvvm::TestSuiteName
+    set LocalTestSuiteName $::osvvm::TestSuiteName
   } else {
-    WriteDictOfString2Yaml $YamlFile TestSuiteName "Default"
+    set LocalTestSuiteName "Default"
   }
+  WriteDictOfString2Yaml $YamlFile TestSuiteName  $LocalTestSuiteName
   WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
   WriteDictOfDict2Yaml   $YamlFile Generics $::osvvm::GenericDict
+  
+  WriteDictOfRelativePath2Yaml  $YamlFile  ReportsTestSuiteDirectory  $LocalOutDir  $::osvvm::ReportsTestSuiteDirectory
+  WriteDictOfRelativePath2Yaml $YamlFile RequirementsYamlFile         $LocalOutDir $::osvvm::RequirementsYamlFile
+  WriteDictOfRelativePath2Yaml $YamlFile AlertYamlFile                $LocalOutDir $::osvvm::AlertYamlFile
+  WriteDictOfRelativePath2Yaml $YamlFile CovYamlFile                  $LocalOutDir $::osvvm::CovYamlFile
+  WriteDictOfDict2Yaml     $YamlFile ScoreboardDict                   $::osvvm::ScoreboardDict
+  WriteDictOfString2Yaml   $YamlFile TranscriptFiles                  $::osvvm::TranscriptFiles
 
-  WriteDictOfString2Yaml $YamlFile ReportsTestSuiteDirectory    $::osvvm::ReportsTestSuiteDirectory
-  WriteDictOfString2Yaml $YamlFile RequirementsYamlFile  $::osvvm::RequirementsYamlFile
-  WriteDictOfString2Yaml $YamlFile AlertYamlFile         $::osvvm::AlertYamlFile
-  WriteDictOfString2Yaml $YamlFile CovYamlFile           $::osvvm::CovYamlFile
-  WriteDictOfDict2Yaml   $YamlFile ScoreboardDict        $::osvvm::ScoreboardDict
-  WriteDictOfList2Yaml   $YamlFile TranscriptFiles       $::osvvm::TranscriptFiles
-
-  WriteDictOfString2Yaml $YamlFile TestCaseFileName      $::osvvm::TestCaseFileName
-  WriteDictOfString2Yaml $YamlFile GenericNames          $::osvvm::GenericNames
+  WriteDictOfString2Yaml $YamlFile TestCaseFileName             $::osvvm::TestCaseFileName
+  WriteDictOfString2Yaml $YamlFile GenericNames                 $::osvvm::GenericNames
 
   WriteOsvvmSettingsYaml $YamlFile
   
@@ -365,7 +401,24 @@ proc SkipTestBuildYaml {SimName Reason} {
   puts  $RunFile "      - TestCaseName: $SimName"
   puts  $RunFile "        Name: $SimName"
   puts  $RunFile "        Status: SKIPPED"
-  puts  $RunFile "        Results: {Reason: \"$Reason\"}"
+  puts  $RunFile "        Results: null"
+  puts  $RunFile "        Reason: \"$Reason\""
+  puts  $RunFile "        ElapsedTime: 0"
+  close $RunFile
+}
+
+# -------------------------------------------------
+# SkipTest
+#
+proc AnalyzeFailedBuildYaml {LibraryUnit Reason} {
+
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
+  puts  $RunFile "      - TestCaseName: $LibraryUnit"
+  puts  $RunFile "        Name: $LibraryUnit"
+  puts  $RunFile "        Status: ANALYZE_FAILED"
+  puts  $RunFile "        Results: null"
+  puts  $RunFile "        Reason: \"$Reason\""
+  puts  $RunFile "        ElapsedTime: 0"
   close $RunFile
 }
 

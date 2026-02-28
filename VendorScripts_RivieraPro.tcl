@@ -61,18 +61,31 @@
   variable ToolName    "RivieraPRO"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   #  Could differentiate between RivieraPRO and VSimSA
-  variable ToolVersion [asimVersion]
+  variable ToolVersion 
+  if {[catch {regexp {\d([\d\.]+)} [exec vsim -version] ToolVersion}]} {
+    variable ToolVersion [asimVersion]
+  }
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
   if {[expr [string compare $ToolVersion "2021.04"] >= 0]} {
     SetVHDLVersion 2019
-    variable Support2019FilePath "true"
+    variable Supports2019Interface           "false"
+    variable Supports2019ImpureFunctions     "true"
+    variable Supports2019FilePath            "true"
+    variable Supports2019AssertApi           "true"
+  }
+  
+  if {$ToolVersion eq "2025.07"} {
+    variable Supports2019Integer64Bits       "true"
   }
 
   variable FunctionalCoverageIntegratedInSimulator "Aldec"
   
-  if {[batch_mode]} {
+  if {[catch {batch_mode}]} {
+    # batch_mode command not exist = running from shell = in batch_mode
+    variable NoGui "true"
+  } elseif {[batch_mode]} {
     variable NoGui "true"
   } else {
     variable NoGui "false"

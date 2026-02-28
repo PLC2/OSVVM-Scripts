@@ -2,6 +2,10 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2026.01       |  Simulate - if run from command line, runs as build and creates reports linked into index     |
+|               |  Simluate generates ANALYZED_FAILED if LastAnalyzeHasErrors                                   |
+|               |  Added CreateDryRunDict, CreateVhdlLsToml, CreateAnalyzeOrderList                             |
+|               |  StartUp.tcl will detect NVC if run as "nvc -do "                                             |
 | 2025.06       |  Move build results to build directory.  BuildName introduced to name it.                     |
 |               |  Create Index.html in the sim directory                                                       |
 |               |  Updated Siemens (vsim flow) and Questa (vopt + vsim flow) scripts to run in tclsh better.    |
@@ -11,9 +15,9 @@
 |               |  Updated OsvvmUserSettingsDirectory s.t. scripts and VHDL use same path                       |
 |               |  Turned off VHDL-2019 settings for Siemens as 2025.1 release claims they don't support it     |
 | 2025.02       |  Use $::env::(OSVVM_SETTINGS_DIR) to set the requirements directory.                          |
-|               |  USE_SUM_OF_GOALS requirements uses Sum of Goals (if true) vs Maximum (if false and past default)        |
+|               |  USE_SUM_OF_GOALS requirements uses Sum of Goals (if true) vs Maximum (if false and past default) |
 |               |  Updated requirements handling to handle Functional Coverage.                                 |
-|               |  Added variable Support2019FilePath (based on tool support).                                  |
+|               |  Added variable Supports2019FilePath (based on tool support).                                  |
 |               |  Added GetTimeString                                                                          |
 | 2024.11       |  Log2Osvvm - Updated how details summary print                                                |
 |               |  OsvvmScriptsCore, VendorScripts_Visualizer, VS_Siemens - worked on Space in Path issue       |

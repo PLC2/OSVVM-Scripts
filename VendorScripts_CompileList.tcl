@@ -105,6 +105,11 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   set ListOfLibraryFiles  [open ${LibraryName}_${::osvvm::ToolName}.files a]
   puts $ListOfLibraryFiles $FileName
   close $ListOfLibraryFiles
+  
+  set  AllFiles  [open OneList.files a]
+  puts $AllFiles [file normalize $FileName] 
+  close $AllFiles
+
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {

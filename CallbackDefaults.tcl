@@ -59,7 +59,7 @@ namespace eval ::osvvm {
 # CallbackBefore_Xxx, CallbackAfter_Xxx
 #
   proc CallbackBefore_Build {Path_Or_File args} {
-#    puts "Build Before ${Path_Or_File}"
+#   puts "Build Before ${Path_Or_File}"
   }
   proc CallbackAfter_Build {Path_Or_File args} {
 #    puts "Build After ${Path_Or_File}"
@@ -105,13 +105,15 @@ namespace eval ::osvvm {
 
   proc CallbackOnError_Build {Path_Or_File BuildErrorMessage LocalBuildErrorInfo} {    
     set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
-    if {$::osvvm::FailOnBuildErrors} {
-#      error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
-      puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo.  Signaling TCL Error"
-      error "$BuildErrorMessage "
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts "Build Error:  Info from \$::osvvm::BuildErrorInfo "
+      puts "$::osvvm::BuildErrorInfo"
     } else {
-      puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+      puts "Build Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo."
     }
+    if {$::osvvm::FailOnBuildErrors} {
+      error $BuildErrorMessage 
+    } 
   }
   
   proc CallbackOnError_FindIncludeFile {Path_Or_File CommandName} {
@@ -123,21 +125,36 @@ namespace eval ::osvvm {
     set ::osvvm::LibraryErrorInfo $::errorInfo
     puts "LibraryError: $ErrMsg"
     puts "LibraryError: library $LibraryName $PathToLib failed in $ErrInProc  See messages above"
-    puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "LibraryError:  Info from  \$::osvvm::LibraryErrorInfo"
+      puts  "$::osvvm::LibraryErrorInfo"
+    } else {
+      puts  "LibraryError: For Tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    }
     error "LibraryError: $ErrMsg"
   }
   
   proc CallbackOnError_LinkLibrary {Message} {
     set ::osvvm::LibraryErrorInfo $::errorInfo
-    puts "LibraryError: $Message   See messages above"
-    puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    puts "LibraryError: LinkLibrary $Message   See messages above"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "LibraryError:  Info from  \$::osvvm::LibraryErrorInfo"
+      puts  "$::osvvm::LibraryErrorInfo"
+    } else {
+      puts  "LibraryError: For Tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    }
     error "$Message"
   }
   
   proc CallbackOnError_RemoveLibraryDirectory {Message} {
     set ::osvvm::LibraryErrorInfo $::errorInfo
-    puts "LibraryError: $Message   See messages above"
-    puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    puts "LibraryError: RemoveLibraryDirectory $Message   See messages above"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "LibraryError:  Info from  \$::osvvm::LibraryErrorInfo"
+      puts  "$::osvvm::LibraryErrorInfo"
+    } else {
+      puts  "LibraryError: For Tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    }
     error "$Message"
   }
   
@@ -151,8 +168,14 @@ namespace eval ::osvvm {
     
     set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
 #    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
+    
     puts  "AnalyzeError: See messages above in \"analyze $args\""
-    puts  "For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "AnalyzeError:  Info from  \$::osvvm::AnalyzeErrorInfo"
+      puts  "$::osvvm::AnalyzeErrorInfo"
+    } else {
+      puts  "AnalyzeError: For Tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
+    }
     
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
@@ -169,7 +192,12 @@ namespace eval ::osvvm {
     set SimulateErrorCount            [expr $SimulateErrorCount+1]
 #    set ConsecutiveSimulateErrors     [expr $ConsecutiveSimulateErrors+1]
     puts  "SimulateError: See messages above in \"simulate $args\""
-    puts  "For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "SimulateError:  Info from  \$::osvvm::SimulateErrorInfo"
+      puts  "$::osvvm::SimulateErrorInfo"
+    } else {
+      puts  "SimulateError: For Tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
+    }
 
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
@@ -184,7 +212,12 @@ namespace eval ::osvvm {
     set ::osvvm::WaveErrorInfo    $LocalErrorInfo
 
     puts "WaveError: Error while doing source $Directory/wave.do during simulate $LibraryUnit: $ErrMsg"
-    puts "For tcl errorInfo, puts \$::osvvm::WaveErrorInfo"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "WaveError:  Info from  \$::osvvm::WaveErrorInfo"
+      puts  "$::osvvm::WaveErrorInfo"
+    } else {
+      puts  "WaveError: For Tcl errorInfo, puts \$::osvvm::WaveErrorInfo"
+    }
     
     # No errors are signaled here
   }
@@ -201,7 +234,12 @@ namespace eval ::osvvm {
     puts  "ScriptError: during build.  See previous messages for details."
     puts  "Please include your simulator version in any issue reports"
     puts  "For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
-    
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts  "ScriptError:  Info from  \$::osvvm::BuildReportErrorInfo"
+      puts  "$::osvvm::BuildReportErrorInfo"
+    } else {
+      puts  "ScriptError: For Tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
+    }
     # Errors are signaled later in the build
   }  
 
@@ -253,6 +291,9 @@ namespace eval ::osvvm {
     set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
     # Continue current build
     puts "ReportError: Simulate2Html failed.  See previous messages for details"
+    if {$::osvvm::TclDebug || $::osvvm::Debug} { 
+      puts "errorInfo:  $::osvvm::SimulateReportErrorInfo"
+    }
     
     # end current build
     # error "ReportError: Simulate2Html failed.  See previous messages"
@@ -298,7 +339,7 @@ namespace eval ::osvvm {
     puts "ReportError: during $ProcName $Message failed: $errmsg"
     
         # Reference or print ErrorInfo for this error 
-    if {$::osvvm::ScriptDebug} {
+    if {$::osvvm::ReportDebug} {
 #      puts ${::osvvm::${ProcName}ErrorInfo}
       puts ${::osvvm::ReportErrorInfo}
     } else {

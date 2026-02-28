@@ -66,6 +66,9 @@ proc CreateBuildReports {ReportFile} {
   ReportBuildYaml2Dict ${ReportFile}
   ReportBuildDict2Html
   ReportBuildDict2Junit
+  if {!$::osvvm::TclDebug} {
+    set ::osvvm::BuildDict ""
+  }
 }
 
 # -------------------------------------------------
@@ -75,10 +78,13 @@ proc ReportBuildYaml2Dict {ReportFile} {
   variable ReportFileRoot
   variable ReportBuildName
   variable BuildDict
+  variable Report2BaseDirectory
 
-  # Extract BuildName and HtmlFileName from ReportFile
-  set ReportFileRoot  [file rootname $ReportFile]
-  set ReportBuildName [file tail $ReportFileRoot]
+
+  # Extract BaseDirectory, BuildName, and HtmlFileName from ReportFile
+  set Report2BaseDirectory   [file dirname $ReportFile]    ;# Set before GetOsvvmPathSettings
+  set ReportFileRoot         [file rootname $ReportFile]
+  set ReportBuildName        [file tail $ReportFileRoot]
   
   
   # Read the YAML file into a dictionary
@@ -118,7 +124,6 @@ proc ReportBuildStatus {} {
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
   
   if {$BuildStatus eq "PASSED"} {
     puts "Build: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount}"
@@ -140,7 +145,6 @@ proc ElaborateTestSuites {TestDict} {
   variable TestCasesPassed 0
   variable TestCasesFailed 0
   variable TestCasesSkipped 0
-  variable TestCasesRun 0
   
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
@@ -155,10 +159,13 @@ proc ElaborateTestSuites {TestDict} {
       set SuiteName [dict get $TestSuite Name]
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName    [dict get $TestCase TestCaseName]
+#!! This could all be simplified with a dict merge that sets TestStatus "FAILED", TestReqGoal 0, TestReqPassed 0, DisabledAlertCount 0
+#!! Independent of SkipTest, ..., VHDL side will fail with no results and no TestStatus
+#!! Good defaults could minimize info provided by SkipTest and others
         if { [dict exists $TestCase Results] } { 
           set TestStatus  [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
-          if { $TestStatus ne "SKIPPED" } {
+          if { $TestStatus ne "SKIPPED" && $TestStatus ne "ANALYZE_FAILED"} {
             set TestReqGoal   [dict get $TestResults RequirementsGoal]
             set TestReqPassed [dict get $TestResults RequirementsPassed]
             set SuiteDisabledAlerts [expr $SuiteDisabledAlerts + [SumAlertCount [dict get $TestResults DisabledAlertCount]]]
@@ -169,16 +176,18 @@ proc ElaborateTestSuites {TestDict} {
             set VhdlName $TestName
           }
         } else {
+          # Nothing is there
           set TestStatus  "FAILED"
           set TestReqGoal   0
           set TestReqPassed 0
           set VhdlName $TestName
         }
+        # Count results.
+        # If test cases run parallel, must be done here. 
         if { $TestStatus eq "SKIPPED" } {
           incr SuiteSkipped
           incr TestCasesSkipped
         } else {
-          incr TestCasesRun
           if { ${TestName} ne ${VhdlName}  } {
             incr SuiteFailed
             incr TestCasesFailed
@@ -192,7 +201,7 @@ proc ElaborateTestSuites {TestDict} {
               }
             }
           } else {
-            # TestStatus = FAILED or TIMEOUT
+            # TestStatus = FAILED or TIMEOUT or ANALYZE_FAILED
             # TestStatus = NOCHECKS if OsvvmVersionCompatibility is 2024.07 (or later) or
             #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed
@@ -205,11 +214,18 @@ proc ElaborateTestSuites {TestDict} {
       } else {
         set SuiteElapsedTime 0
       }
-      if { $SuitePassed > 0 && $SuiteFailed == 0 } {
-        set SuiteStatus "PASSED"
-      } else {
+      if {$SuiteFailed > 0} {
         set SuiteStatus "FAILED"
         set BuildStatus "FAILED"
+      } elseif { $SuitePassed > 0 } {
+        set SuiteStatus "PASSED"
+      } elseif { $SuiteSkipped > 0 } {
+        set SuiteStatus "SKIPPED"
+      } else {
+        set SuiteStatus "EMPTY"
+        if {$::osvvm::FailOnEmptyTestSuite} {
+          set BuildStatus "FAILED"
+        }
       }
       set SuiteDict [dict create Name       $SuiteName]
       dict append SuiteDict Status          $SuiteStatus
@@ -247,6 +263,7 @@ proc GetBuildStatus {TestDict} {
   variable RequirementsRelativeHtml
 
 
+#!! Simplify with dict merge
   if { [dict exists $TestDict BuildInfo] } {
     set RunInfo   [dict get $TestDict BuildInfo] 
   } else {
@@ -286,8 +303,8 @@ proc GetBuildStatus {TestDict} {
     set ReportFinishTime ""
   } 
 
-  if {[dict exists $RunInfo Elapsed]} {
-    set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
+  if {[dict exists $RunInfo ElapsedTime]} {
+    set ElapsedTimeSeconds [dict get $RunInfo ElapsedTime]
   } else {
     set ElapsedTimeSeconds 0.0
   }

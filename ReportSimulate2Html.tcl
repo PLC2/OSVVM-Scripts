@@ -53,14 +53,34 @@ package require fileutil
 
 
 #--------------------------------------------------------------
-proc Simulate2Html {SettingsFileWithPath} {
+proc Simulate2Html {SettingsFileWithPath BaseDirectory} {
+  # Convert simulation yml files to test case html report
+	#
+  #  SettingsFileWithPath - Settings File for Simulation, named TestCaseName_run.yml, including the path to it.
+	#
+	# **Generates TestCaseName.html that integrates**
+  # Note if test case includes generics then TestCaseName will include _GenericValue for each generic
+  # TestCaseName_run.yml    - test case settings
+  # TestCaseName_alerts.yml - alert statistics from osvvm.AlertLogPkg
+  # TestCaseName_cov.yml    - coverage statistics from osvvm.CoveragePkg
+  # TestCasename_sb_*.yml   - scoreboard statistics from instances of osvvm.ScoreboardGenericPkg
+  #
+  # **Provides links to the following**
+  # TestCaseVhdlFileName.vhd - TestCase File Name for this test case (last file analyzed before simulate)
+  # TestCaseResultsFile.log  - Test case transcript that was opened with OSVVM's TranscriptOpen
+  # BuildName.log - Link to Simulation Results in simulator transcript file (marked with html tag)
+  #  
   variable ResultsFile
   
   variable Report2AlertYamlFile              
 #  variable Report2RequirementsYamlFile 
-  variable Report2CovYamlFile          
-  
-    
+  variable Report2CovYamlFile        
+  variable Report2BaseDirectory
+
+  # Report2BaseDirectory - Path to report files.
+  # Cannot be derived from $SettingsFileWithPath as too much freedom with directories
+  # Set before GetOsvvmPathSettings
+  set Report2BaseDirectory   $BaseDirectory 
   GetTestCaseSettings $SettingsFileWithPath 
   
   set TestCaseFileName $::osvvm::Report2TestCaseFileName
@@ -87,8 +107,8 @@ proc Simulate2Html {SettingsFileWithPath} {
   }
   
   if {$::osvvm::Report2ScoreboardDict ne ""} {
-    foreach {SbName SbFile} ${::osvvm::Report2ScoreboardDict} {
-      Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
+    foreach {SbName SbFileYaml} ${::osvvm::Report2ScoreboardDict} {
+      Scoreboard2Html ${TestCaseName} ${TestSuiteName} [file join ${Report2BaseDirectory} ${SbFileYaml}] Scoreboard_${SbName}
     }
   }
   
@@ -170,10 +190,12 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   }
   
   # Add link to Test Case file
-  set TestCaseFile [::fileutil::relative $::osvvm::Report2ReportsDirectory $::osvvm::Report2TestCaseFile]
+#  set TestCaseFile [::fileutil::relative $::osvvm::Report2ReportsDirectory $::osvvm::Report2TestCaseFile]
+  # Already relative path
+  set TestCaseFile $::osvvm::Report2TestCaseFile
   set TestCaseFileTail [file tail $TestCaseFile]
   if {$::osvvm::Report2TestCaseFile ne ""} {
-    puts $ResultsFile "          <tr><td><a href=\"${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"
+    puts $ResultsFile "          <tr><td><a href=\"${::osvvm::VhdlFileViewerPrefix}${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"
   }
   
   # Add Transcript Filess to Table

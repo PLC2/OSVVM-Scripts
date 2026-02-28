@@ -8,6 +8,7 @@
 # 
 #  Description
 #    Sets the defaults for the OSVVM Scripts
+#    Primarily settings that can be overridden in OsvvmSettingsLocal.tcl
 #    
 #  Developed by: 
 #        SynthWorks Design Inc. 
@@ -26,7 +27,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.  
+#  Copyright (c) 2021 - 2025 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -45,9 +46,9 @@
 #
 # DO NOT CHANGE THESE SETTINGS
 #   This file is overwritten with each new release.
-#   Instead, create a LocalScriptDefaults.tcl and change them there.
-#   If you do not have a LocalScriptDefaults.tcl, 
-#   copy Example_LocalScriptDefaults.tcl to LocalScriptDefaults.tcl
+#   Instead, create a OsvvmSettingsLocal.tcl and change them there.
+#   If you do not have a OsvvmSettingsLocal.tcl, 
+#   copy OsvvmSettingsLocal_example.tcl to OsvvmSettingsLocal.tcl
 #
 
 
@@ -59,7 +60,8 @@ namespace eval ::osvvm {
     # CurrentWorkingDirectory is a relative path to the scripts currently running 
     variable CurrentWorkingDirectory ""
     # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
-    variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"
+    # ** Note it is intentionally different from InvalidDirectory
+    variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"  ;# **
   
   #
   # Directory structure and results file management
@@ -68,10 +70,10 @@ namespace eval ::osvvm {
     # Caution:  If you change the value of OsvvmTempOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
     # Files only remain in this directory when a tool does not complete correctly
     variable OutputBaseDirectory                  ""      ; # Container for all OSVVM ouput
-#    variable OsvvmTempOutputSubdirectory         "OsvvmTemp"  
-#    variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
+#     variable OsvvmTempOutputSubdirectory         "OsvvmTemp"  
+#     variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
     variable OsvvmTempOutputSubdirectory          "OsvvmTemp_${ToolName}"  
-#    variable LogSubdirectory                      "logs/${ToolNameVersion}"
+#     variable LogSubdirectory                      "logs/${ToolNameVersion}"  ;# note ToolNameVersion not available here any more
     variable LogSubdirectory                      "logs"  ; #  With build directories does not need $ToolNameVersion.  Was "logs/${ToolNameVersion}" 
     variable ReportsSubdirectory                  "reports"  ; # Directory scripts put reports into.
     variable ResultsSubdirectory                  "results"  ; # Directory for files opened by TranscriptOpen
@@ -94,17 +96,23 @@ namespace eval ::osvvm {
 
   # 
   # TCL Error signaling during a build 
+  #   If statements make the persistent with running StartUp
   #
+    
     if {![info exists FailOnBuildErrors]} {
-      variable FailOnBuildErrors        "true"
+      variable FailOnBuildErrors        "false"
     }
     if {![info exists FailOnReportErrors]} {
       variable FailOnReportErrors       "false"
     }
     if {![info exists FailOnTestCaseErrors]} {
       variable FailOnTestCaseErrors     "false"
-  }
-  
+    }
+    if {![info exists FailOnEmptyTestSuite]} {
+      variable FailOnEmptyTestSuite     "true"
+    }
+    variable GenerateOsvvmReports      "true"
+
   #
   # Stop Counts for Failures seen by Analyze and Simulate
   #   Value 0 is special to mean, don't stop
@@ -128,7 +136,7 @@ namespace eval ::osvvm {
   #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across teests
   #      when true,  uses sum of goals - good when not merging the specification and need to sum up goals to get the total
     variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum  
-    #  variable USE_SUM_OF_GOALS         "true"     ;# when true uses sum of goals 
+    #  variable USE_SUM_OF_GOALS      "true"     ;# when true uses sum of goals 
 
   #
   # VHDL Simulation Settings 
@@ -149,70 +157,33 @@ namespace eval ::osvvm {
   #
   #  Simulation Controls
   #
-    variable SimulateInteractive "false"
-    variable DebugIsSet          "false"
-    variable Debug               "false"
-    variable LogSignalsIsSet     "false"
-    variable LogSignals          "false"
-    variable ScriptDebug         "false"
-    variable OpenBuildHtmlFile   "false"
-
-  #
-  # FunctionalCoverageIntegratedInSimulator controls whether osvvm.pro allows functional coverage to be linked into simulator interface
-  #   osvvm.pro does:  analyze CoverageVendorApiPkg_${::osvvm::FunctionalCoverageIntegratedInSimulator}.vhd
-  #   Currently valid values are:   
-  #       "default" - do not use any simulator functional coverage linking.
-  #       "Aldec"   - use the link for Aldec tools - works with RivieraPRO and ActiveHDL
-  #       "NVC"     - works with NVC 1.15.1 or newer.
-  #   Values other than "default" is set by VendorScripts_***.tcl for the respective simulator
-  #   Here, if a value was not previously set, the value "default" will be set.
-  #   To add capabilty to a simulator, 
-  #      add a file named CoverageVendorApiPkg_<simualtor_or_vendor>.vhd to directory osvvm and 
-  #      set this variable in the VendorScripts_***.tcl for the appropriate version of the simualtor (see VendorScripts_NVC.tcl)
-  #
-    if {![info exists FunctionalCoverageIntegratedInSimulator]} {
-      variable FunctionalCoverageIntegratedInSimulator "default"
-    }
-
-  # 
-  # Extended Analyze and Simulate Options
-  #
-    variable VhdlAnalyzeOptions        ""
-    variable VerilogAnalyzeOptions     ""
-    variable ExtendedAnalyzeOptions    ""
-    variable ExtendedSimulateOptions   ""
-    
-  #
-  #  For simulators that use two steps for Elaborate/Optimize and Run/Simulate 
-  #
-    variable ExtendedElaborateOptions  ""
-    variable ExtendedOptimizeOptions   ""
-    variable ExtendedRunOptions        ""
+    variable SimulateInteractive       "false"
+    variable DebugIsSet                "false"
+    variable Debug                     "false"
+    variable LogSignalsIsSet           "false"
+    variable LogSignals                "false"
+    variable OpenBuildHtmlFile         "false"
     variable SaveWaves                 "false"
     variable SimulateInteractive       "false"
-  
 
   #
-  #  Debug Controls
+  #  VHDL File Viewer Controls
   #
-  variable TclDebug                    "false"
+    variable VhdlFileViewerPrefix      ""  ;# viewer = html browser.
+  #  variable VhdlFileViewerPrefix      "vscode://file/"   ;# viewer = vscode.  Set in OsvvmSettingsLocal.tcl
+
+
+  #
+  #  OsvvmDeveloper Controls
+  #
+    variable TclDebug                     "false"
+    variable ReportDebug                  "false"
+    variable OsvvmDevDeriveArchitectures  "false"
 
   #
   # Second Top
   #
     variable SecondSimulationTopLevel ""
   
-  #
-  # RemoveLibrary / RemoveLibraryDirectory Controls. 
-  #    Also set by by VendorScripts_ActiveHDL.  
-  #    Currently both must be false for ActiveHDL
-  #
-    if {![info exists RemoveLibraryDirectoryDeletesDirectory]} {
-      variable RemoveLibraryDirectoryDeletesDirectory "true"
-    }
-    
-    if {![info exists RemoveUnmappedLibraries]} {
-      variable RemoveUnmappedLibraries    "true"
-    }
   
 }

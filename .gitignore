@@ -1,2 +1,6 @@
 LocalScriptDefaults.tcl
 OsvvmSettingsLocal.tcl
+
+# Documentation
+/doc/_build/
+/doc/osvvm-scripts/

@@ -127,10 +127,13 @@ proc CreateBuildIndexSummary  {} {
 
   puts $ResultsFile "        <tbody>"
 
-  foreach BuildItem  $IndexDict {
-    set BuildItemName    [dict get $BuildItem Name]
-    set BuildStatus      [dict get $BuildItem Status]
+  set NoInfoDict {Name NA Directory "" Status FAILED Passed 0 Failed 1 Skipped 0 Tests 0 AnalyzeErrorCount 0 SimulateErrorCount 0 BuildErrorCode 0 StartTime 2011-02-07T12:00:00-08:00 FinishTime 2012-01-09T12:00:00-08:00 ElapsedTime 0.0 ToolName OsvvmNameDay ToolVersion 0.1 OsvvmVersion 2012.01}
 
+  foreach RawBuildItem  $IndexDict {
+    set BuildItem        [dict merge $NoInfoDict $RawBuildItem]
+    set BuildItemName    [dict get $BuildItem Name]
+    set BuildDirectory   [dict get $BuildItem Directory]
+    set BuildStatus      [dict get $BuildItem Status]
     set PassedClass  "" 
     set FailedClass  "" 
     if { ${BuildStatus} eq "PASSED" } {
@@ -144,26 +147,27 @@ proc CreateBuildIndexSummary  {} {
     }
 
     puts $ResultsFile "          <tr>"
-#    puts $ResultsFile "            <td><a href=\"[file join $::osvvm::OutputBaseDirectory ${BuildItemName}/${BuildItemName}.html]\">${BuildItemName}</a></td>"
-    puts $ResultsFile "            <td><a href=\"${BuildItemName}/${BuildItemName}.html\">${BuildItemName}</a></td>"
+    if {$BuildDirectory ne ""} {
+      puts $ResultsFile "            <td><a href=\"${BuildDirectory}/${BuildItemName}.html\">${BuildItemName}</a></td>"
+    } else {
+      puts $ResultsFile "            <td>${BuildItemName}</a></td>"
+    }
     puts $ResultsFile "            <td ${StatusClass}>$BuildStatus</td>"
     puts $ResultsFile "            <td ${PassedClass}>[dict get $BuildItem Passed] </td>"
     puts $ResultsFile "            <td ${FailedClass}>[dict get $BuildItem Failed] </td>"
     puts $ResultsFile "            <td>[dict get $BuildItem Skipped]</td>"
-    set  BuildElapsedTime [dict get $BuildItem Elapsed]
+    set  BuildElapsedTime [expr {round([dict get $BuildItem ElapsedTime])}]
     puts $ResultsFile "            <td>[format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] </td>"
     puts $ResultsFile "            <td>[dict get $BuildItem AnalyzeErrorCount]</td>"
     puts $ResultsFile "            <td>[dict get $BuildItem SimulateErrorCount]</td>"
     puts $ResultsFile "            <td>[dict get $BuildItem ToolName]-[dict get $BuildItem ToolVersion]</td>"
     puts $ResultsFile "            <td>[dict get $BuildItem OsvvmVersion]</td>"
-    puts $ResultsFile "            <td>[dict get $BuildItem FinishTime]</td>"
+    puts $ResultsFile "            <td>[IsoToOsvvmTime [dict get $BuildItem FinishTime]]</td>"
     puts $ResultsFile "        </tr>"
   }
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
-  puts $ResultsFile "    </div>"
-  
-    
+  puts $ResultsFile "    </div>"  
 }
 
 

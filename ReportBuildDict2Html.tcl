@@ -129,7 +129,6 @@ proc CreateHtmlSummary {TestDict} {
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
-  variable TestCasesRun 
   
   set PassedClass  ""
   set FailedClass  ""
@@ -177,7 +176,7 @@ proc CreateHtmlSummary {TestDict} {
     puts $ResultsFile "          <tr><td>Finish Time</td> <td>$ReportFinishTime</td></tr>"
   } 
 
-  puts $ResultsFile "          <tr><td>Elapsed Time (h:m:s)</td>                <td>$ElapsedTimeHms</td></tr>"
+  puts $ResultsFile "          <tr><td>Elapsed Time (hh:mm:ss)</td>                <td>$ElapsedTimeHms</td></tr>"
   puts $ResultsFile "          <tr><td>Simulator (Version)</td> <td>${ReportSimulator} ($ReportSimulatorVersion)</td></tr>"
 
   if {$OsvvmVersion ne ""} {
@@ -326,9 +325,9 @@ proc CreateTestCaseSummaries {TestDict} {
         if { [dict exists $TestCase Status] } { 
           set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
-          if { $TestStatus eq "SKIPPED" } {
+          if { $TestStatus eq "SKIPPED" || $TestStatus eq "ANALYZE_FAILED"} {
             set TestReport  "NONE"
-            set Reason      [dict get $TestResults Reason]
+            set Reason      [dict get $TestCase Reason]
           } else {
             set TestReport  "REPORT"
             set VhdlName    [dict get $TestCase Name]
@@ -393,7 +392,12 @@ proc CreateTestCaseSummaries {TestDict} {
           }
         }
         puts $ResultsFile "          <tr>"
-        puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
+        if {($TestStatus eq "PASSED") || ($TestStatus eq "FAILED")} {
+          puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
+        } else {
+#!! Long term link to place SkipTest is called in the build log output.
+          puts $ResultsFile "            <td>${TestCaseName}</td>"
+        }
         puts $ResultsFile "            <td ${StatusClass}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "            <td ${PassedClass}>[dict get $TestResults AffirmCount]</td>"

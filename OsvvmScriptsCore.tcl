@@ -397,35 +397,40 @@ proc build {{Path_Or_File "."} args} {
       #  Catch any errors from the build and handle them below
       set BuildErrorCode [catch {LocalBuild $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "LocalBuild errorInfo: $::errorInfo"
+      if {$BuildErrorCode != 0} {   
+        CheckSimulationDirs  ; ##?? Creates ReportsDirectory for builds that fail.  Refactor later.
       }
-
       
-      set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
-      set LocalBuildYamlErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "FinishBuildYaml errorInfo: $::errorInfo"
-      }
+      if {$::osvvm::GenerateOsvvmReports} {
+        set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
+        set LocalBuildYamlErrorInfo $::errorInfo
+        if {($ReportYamlErrorCode != 0) && ($::osvvm::TclDebug || $::osvvm::Debug)} {
+          # No prior call back, only depends on opening file that has already been opened
+          puts "FinishBuildYaml \$LocalBuildYamlErrorInfo: $::errorInfo"
+        }
 
-      # Try to create reports, even if the build failed
-      set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
-      set LocalReportErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "AfterBuildReports errorInfo: $::errorInfo"
+        # Try to create reports, even if the build failed
+        set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
+        set LocalReportErrorInfo $::errorInfo
+      } else {
+        set ReportYamlErrorCode 0
+        set ReportErrorCode 0
       }
 
       StopTranscript ${BuildName}
       
       set BuildStarted "false"
       
-      # Cannot generate html log files until transcript is closed - previous step
-      set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
-      set Log2ErrorInfo $::errorInfo
-      
-      WriteIndexYaml $BuildName
-      Index2Html
-      # IndexToHtml 
+      if {$::osvvm::GenerateOsvvmReports} {
+        # Cannot generate html log files until transcript is closed - previous step
+        set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
+        set Log2ErrorInfo $::errorInfo
+        
+        WriteIndexYaml $BuildName
+        Index2Html
+      } else {
+        set Log2ErrorCode 0
+      }
 
       set BuildName ""
       set ::osvvm::HaveNotCreatedBuildOutputDirectory "true"
@@ -440,12 +445,12 @@ proc build {{Path_Or_File "."} args} {
       if {$AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
         CallbackOnError_Build $Path_Or_File "Failed with Analyze Errors: $AnalyzeErrorCount and/or Simulate Errors: $SimulateErrorCount" $LocalBuildErrorInfo 
       } 
-      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} { 
         CallbackOnError_AfterBuildReports $LocalReportErrorInfo
       } 
       # Fail on Test Case Errors
       if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
-          error "Test finished with Test Case Errors"
+        error "Test finished with Test Case Errors."
       }
       # Fail on Report / Script Errors?
       if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
@@ -467,7 +472,9 @@ proc LocalBuild {Path_Or_File args} {
   puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  StartBuildYaml  
+  if {$::osvvm::GenerateOsvvmReports} {
+    StartBuildYaml  
+  }
   
   CallbackBefore_Build ${Path_Or_File}
   LocalInclude ${Path_Or_File} {*}$args
@@ -596,8 +603,10 @@ proc CheckLibraryInit {} {
     set VhdlLibraryParentDirectory [pwd]
   }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
-    # Local Library Directory - use OutputBaseDirectory
-    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+#    # Local Library Directory - use OutputBaseDirectory
+#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    # Local Library Directory - use CurrentSimulationDirectory
+    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   } else {
     # Global Library Directory - do not use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
@@ -622,7 +631,9 @@ proc CheckLibraryExists {} {
 proc SetAndCreateBuildOutputDirectory {} {
 variable HaveNotCreatedBuildOutputDirectory 
 variable OsvvmBuildOutputDirectory
+variable BuildName
 
+#  if {$::osvvm::BuildName ne ""} {}
   if {$::osvvm::BuildStarted} {
     if {$HaveNotCreatedBuildOutputDirectory} {
       # When run as part of a build, use the BuildName
@@ -633,6 +644,7 @@ variable OsvvmBuildOutputDirectory
       }
       CreateDirectory $OsvvmBuildOutputDirectory
       CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
+      # Only run this code once per build
       set HaveNotCreatedBuildOutputDirectory "false"
     }
   } else {
@@ -722,7 +734,7 @@ proc StartTranscript {} {
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   
 #  if {[llength [info procs vendor_StartTranscript]] > 0} {}
-  if {![catch {info body vendor_StartTranscript} err]} {
+  if {[info procs vendor_StartTranscript] ne ""} {
     vendor_StartTranscript $TempTranscriptName
   } else {
     DefaultVendor_StartTranscript $TempTranscriptName
@@ -759,20 +771,22 @@ proc StopTranscript {{FileBaseName ""}} {
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   set TranscriptFileName [file join ${LogDirectory} ${FileBaseName}.log]
   # if {[llength [info procs vendor_StopTranscript]] > 0} {}
-  if {![catch {info body vendor_StopTranscript} err]} {
+  if {[info procs vendor_StopTranscript] ne ""} {
     vendor_StopTranscript $TempTranscriptName
-#    file rename -force ${TempTranscriptName} ${TranscriptFileName}
-    file copy   -force ${TempTranscriptName} ${TranscriptFileName}
-    file delete -force ${TempTranscriptName} 
-
-  } else {
-    DefaultVendor_StopTranscript $TempTranscriptName
-    if {$::osvvm::GotTee} {
-#       file rename -force ${TempTranscriptName} ${TranscriptFileName}
+    if {[file exists $TempTranscriptName]} {
       file copy   -force ${TempTranscriptName} ${TranscriptFileName}
       file delete -force ${TempTranscriptName} 
-    } else {
-      file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+    }
+  } else {
+    DefaultVendor_StopTranscript $TempTranscriptName
+    if {[file exists $TempTranscriptName]} {
+      if {$::osvvm::GotTee} {
+  #       file rename -force ${TempTranscriptName} ${TranscriptFileName}
+        file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+        file delete -force ${TempTranscriptName} 
+      } else {
+        file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+      }
     }
   }
 }
@@ -1085,6 +1099,26 @@ proc LinkCurrentLibraries {} {
 # analyze
 #
 proc analyze {FileName args} {
+  # Analyze an HDL source file.
+	#
+  #  FileName - Path to the HDL source file.
+  #  args     - Further options.
+	#
+	# This procedure executes a tool-specific analyze command depending on what tool was detected. Some of the used
+	# analyze option depend on the current context. For example the use VHDL library this source file and its design units
+	# are compiled into, depend on the last [library] call.
+	#
+	# **Procedures influencing the context for the `analyze` command:**
+	#
+	# * [library] - set the VHDl working library
+	# * [SetVHDLVersion] - tbd
+	# * [SetExtendedAnalyzeOptions] - tbd
+	# * [SetVhdlAnalyzeOptions] - tbd
+	#
+  # **Supported HDL sourcefile languages:**
+	# * VHDL `*.vhd`/`*.vhdl`
+	# * Verilog `*.v`
+	# * SystemVerilog `*.sv`
   variable AnalyzeErrorCount 
   variable AnalyzeErrorStopCount
   variable ConsecutiveAnalyzeErrors 
@@ -1162,45 +1196,62 @@ proc NoNullRangeWarning  {} {
 proc simulate {LibraryUnit args} {
   variable vendor_simulate_started
 
-  set SavedInteractive [GetInteractiveMode] 
-  if {!($::osvvm::BuildStarted)} {
+  if {$::osvvm::LastAnalyzeHasError} {
+    AnalyzeFailed $LibraryUnit "Previous analyze failed.  Skipping simulate."
+
+  } elseif {!($::osvvm::BuildStarted)} {
+    # called simulate from console - run as a build with just simulate in it.
+    set SavedInteractive [GetInteractiveMode] 
+    CheckWorkingDir
     SetInteractiveMode "true"
-  }
+    set  SimProFileName [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OsvvmTempOutputDirectory OsvvmSimulateBuild.pro]
+    set  SimProFile     [open ${SimProFileName} w]
+    puts $SimProFile "simulate $LibraryUnit $args"
+    close $SimProFile
 
-  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
-  set LocalSimulateErrorInfo $::errorInfo
-  
-  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
-    # if simulate ended in error, EndSimulation to close open files.
-    # $osvvm_testbench/AlertLogPkg tests require extra run after simulate 
-    # so checking only SimulateInteractive not sufficient  
-    EndSimulation
-    unset vendor_simulate_started
-  }
-  
-  SetInteractiveMode $SavedInteractive  ; # Restore original value
-  
-  set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
-  set LocalReportErrorInfo $::errorInfo
+    catch [build $SimProFileName [BuildName $LibraryUnit]]  ;# Errors to std_output, but interactive and stopping anyway
 
-  # Reset Temporary Settings
-  if {[info exists ::osvvm::TestCaseName]} {
-    unset ::osvvm::TestCaseName
-  }
-  set ::osvvm::GenericDict           ""
-  set ::osvvm::GenericNames          ""
-  set ::osvvm::GenericOptions        ""
-  set ::osvvm::RunningCoSim          "false"
-  
-  if {$SimulateErrorCode != 0} {
-    CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
+    SetInteractiveMode $SavedInteractive  ; # Restore original value
+    catch [file delete -force $SimProFile]  
+
   } else {
-    set ::osvvm::ConsecutiveSimulateErrors 0 
-  }
+    set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
+    set LocalSimulateErrorInfo $::errorInfo
+    
+    if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
+      # if simulate ended in error, EndSimulation to close open files.
+      # $osvvm_testbench/AlertLogPkg tests require extra run after simulate 
+      # so checking only SimulateInteractive not sufficient  
+      EndSimulation
+      unset vendor_simulate_started
+    }
+    
+    if {$::osvvm::GenerateOsvvmReports} {
+      set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
+      set LocalReportErrorInfo $::errorInfo
+    } else {
+      set ReportErrorCode 0 
+    }
 
-  if {$ReportErrorCode != 0} {  
-    CallbackOnError_AfterSimulateReports $ReportErrMsg $LocalReportErrorInfo
-  } 
+    # Reset Temporary Settings
+    if {[info exists ::osvvm::TestCaseName]} {
+      unset ::osvvm::TestCaseName
+    }
+    set ::osvvm::GenericDict           ""
+    set ::osvvm::GenericNames          ""
+    set ::osvvm::GenericOptions        ""
+    set ::osvvm::RunningCoSim          "false"
+    
+    if {$SimulateErrorCode != 0} {
+      CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
+    } else {
+      set ::osvvm::ConsecutiveSimulateErrors 0 
+    }
+
+    if {$ReportErrorCode != 0} {  
+      CallbackOnError_AfterSimulateReports $ReportErrMsg $LocalReportErrorInfo
+    } 
+  }
 }
 
 proc LocalSimulate {LibraryUnit args} {
@@ -1243,13 +1294,6 @@ proc LocalSimulate {LibraryUnit args} {
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
-# This will not try to start a sim if LastAnalyzeHasError
-# Removed as found better work around to issue
-#    if {$::osvvm::LastAnalyzeHasError} {
-#      puts "Last Analyze has an error. Skipping simulation"
-#      return 
-#    } else {
-#    }
     CallbackBefore_Simulate $LibraryUnit $args
     vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
     CallbackAfter_Simulate  $LibraryUnit $args
@@ -1262,7 +1306,7 @@ proc AfterSimulateReports {} {
   
   WriteTestCaseSettingsYaml $TestCaseSettingsFile
 
-  Simulate2Html $TestCaseSettingsFile
+  Simulate2Html $TestCaseSettingsFile $::osvvm::OsvvmBuildOutputDirectory
   
   FinishSimulateBuildYaml 
 }
@@ -1470,6 +1514,9 @@ proc RunAllTests {{TestFilePrefix ""} args} {
   foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
     RunTest $Test
   }
+  foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhdl]] {
+    RunTest $Test
+  }
 }
 
 # -------------------------------------------------
@@ -1482,6 +1529,17 @@ proc SkipTest { {FileName "NotProvided.vhd"} {Reason "Not Provided"} } {
   puts "SkipTest $FileName $Reason"
   
   SkipTestBuildYaml $SimName $Reason
+}
+
+
+# -------------------------------------------------
+# AnalyzeFailed
+#
+proc AnalyzeFailed { {LibraryUnit "NotProvided"} {Reason "Not Provided"} } {
+
+  puts "SimulateError: simulate $LibraryUnit $Reason"
+  
+  AnalyzeFailedBuildYaml $LibraryUnit $Reason
 }
 
 
@@ -2064,7 +2122,7 @@ proc SimulateDoneMoveTestCaseFiles {} {
       set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbSourceFile]] ""]
       set SbDestFile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
       file rename -force $SbSourceFile  $SbDestFile
-      dict append ScoreboardDict $SbName $SbDestFile
+      dict append ScoreboardDict $SbName [file join ${::osvvm::ReportsSubdirectory} ${TestSuiteName} ${TestCaseFileName}_sb_${SbName}.yml]
     }
   }
   
@@ -2148,6 +2206,7 @@ proc CopyHtmlThemeFiles {HtmlThemeSourceDirectory BaseDirectory HtmlThemeTargetS
 }
 
 # -------------------------------------------------
+# DirectoryExists - use OSVVM 
 proc DirectoryExists {DirInQuestion} {
   variable CurrentWorkingDirectory
 
@@ -2159,6 +2218,7 @@ proc DirectoryExists {DirInQuestion} {
   return [file exists [file join ${LocalWorkingDirectory} ${DirInQuestion}]]
 }
 
+# -------------------------------------------------
 proc FileExists {FileName} {
   variable CurrentWorkingDirectory
 
@@ -2170,29 +2230,46 @@ proc FileExists {FileName} {
   return [file exists [file join ${LocalWorkingDirectory} ${FileName}]]
 }
 
+# -------------------------------------------------
+proc FileModified {FileName} {
+  variable CurrentWorkingDirectory
+
+  if {[info exists CurrentWorkingDirectory]} {
+    set LocalWorkingDirectory $CurrentWorkingDirectory
+  } else {
+    set LocalWorkingDirectory "."
+  }
+  return [file mtime [file join ${LocalWorkingDirectory} ${FileName}]]
+}
+
+
+# -------------------------------------------------
 proc JoinWorkingDirectory {RelativePath} {
   variable CurrentWorkingDirectory
   return [file join $CurrentWorkingDirectory $RelativePath]
 }
 
+# -------------------------------------------------
 proc ChangeWorkingDirectory {RelativePath} {
   variable CurrentWorkingDirectory
   set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $RelativePath]
 }
 
+# -------------------------------------------------
 proc TimeIt {args} {
-
   set StartTimeMs [clock milliseconds]
   eval $args
   puts  "Time:  [ElapsedTimeMs $StartTimeMs]"
 }
 
+# -------------------------------------------------
 proc SetArgv {} {
   set ::argv0   0
   set ::argv    0
   set ::argc    0
 }
 
+# -------------------------------------------------
 proc GetTimeString {} {
   return [GetIsoTime [clock seconds]]
 }
@@ -2209,7 +2286,6 @@ namespace export CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
-namespace export FileExists DirectoryExists
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
 namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
@@ -2228,11 +2304,15 @@ namespace export SetLogSignals GetLogSignals
 namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 namespace export OsvvmLibraryPath
-namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export EndSimulation 
 namespace export FindLibraryPathByName CoSim
 namespace export OpenBuildHtml OpenIndex
+namespace export DirectoryExists FileExists FileModified
+namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export GetTimeString
+
+# Experimental
+namespace export RunAllTests
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile UnsetLibraryVars
