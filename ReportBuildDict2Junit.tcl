@@ -181,7 +181,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
           set ElapsedTime missing
         }
         if {[dict exists $TestCase Reason]} {
-          set Reason [dict exists $TestCase Reason]
+          set Reason [dict get $TestCase Reason]
         } elseif {$TestStatus ne "PASSED"} {  ; # SKIPPED has a reason
           set Reason "Test Case Error"
         } else {

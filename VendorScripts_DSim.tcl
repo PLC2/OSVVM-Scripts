@@ -45,7 +45,7 @@
 # Tool Settings
 #
   variable ToolType    "simulator"
-  variable ToolVendor  "Xilinx"
+  variable ToolVendor  "BluePearl"
   variable ToolName    "DSim"
   variable ToolVersion 2024.04
   variable ToolNameVersion ${ToolName}-2024.04   ;# produces "DSim-2024.04"

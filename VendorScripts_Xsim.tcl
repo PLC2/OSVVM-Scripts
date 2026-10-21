@@ -322,7 +322,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     set  SimulateOptions "-runall ${LibraryName}_${LibraryUnit}"
     puts "xsim {*}$SimulateOptions"
     if { [catch {exec xsim {*}$SimulateOptions 2>@1} SimulateMessage]} {
-       error "Failed: simulate $LibraryUnit"
       PrintWithPrefix "Simulate Error:" $SimulateMessage
       error "Failed: simulate $LibraryUnit"
     } else {

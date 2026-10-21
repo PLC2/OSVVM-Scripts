@@ -355,10 +355,10 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # coverage simulate options. Generics set with [generic] are in `GenericOptions` (as returned by
   # `vendor_generic`) and `GenericDict`. An error marks the simulation as failed.
   #
-  # ASim: writes the script `OsvvmSimRun.tcl` with `vendor_CreateSimulateDoFile`, then runs the executable
+  # ASim: writes the script `OsvvmSimRun.tcl` with `vendor_SimulateCreateDoFile`, then runs the executable
   # `vsim -c` with $args, the generics, `-t <SimulateTimeUnits> -lib <LibraryName> <LibraryUnit>`, the second top-level
   # unit of [SetSecondSimulationTopLevel] and `-tcl OsvvmSimRun.tcl`, and prints the command and its output. If writing
-  # the script fails, raises the error `Failed: vendor_CreateSimulateDoFile <LibraryUnit>`; if `vsim` fails, prints its
+  # the script fails, raises the error `Failed: vendor_SimulateCreateDoFile <LibraryUnit>`; if `vsim` fails, prints its
   # output with the prefix `Error:` and the Tcl error information, and raises the error
   # `Failed: simulate <LibraryUnit>`.
   variable OsvvmScriptDirectory
@@ -369,11 +369,11 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   global aldec            ; #  required for matlab cosim
 
   # Create the script files
-  set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
+  set ErrorCode [catch {vendor_SimulateCreateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
-    error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
+    error "Failed: vendor_SimulateCreateDoFile $LibraryUnit"
   }
 
 #  puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
@@ -393,9 +393,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 }
 
 # -------------------------------------------------
-# vendor_CreateSimulateDoFile
+# vendor_SimulateCreateDoFile
 #
-proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+proc vendor_SimulateCreateDoFile {LibraryUnit ScriptFileName} {
   # Write the script the simulator runs after loading the design.
   #  LibraryUnit    - Top-level design unit of the simulation.
   #  ScriptFileName - Path of the script file to write.
@@ -406,6 +406,8 @@ proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
   #
   # ASim: writes the user scripts (`SimulateCreateDoFile`) and `run -all`; signals aren't logged.
   variable ScriptFile
+  variable TestSuiteName
+  variable TestCaseFileName
 
   # Open File
   set ScriptFile [open $ScriptFileName w]

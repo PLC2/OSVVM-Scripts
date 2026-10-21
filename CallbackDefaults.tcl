@@ -728,7 +728,7 @@ namespace eval ::osvvm {
     }
 
     # Pass the error information up
-    error $ProcName $Message failed: $errmsg"
+    error "$ProcName $Message failed: $errmsg"
   }
 
 }

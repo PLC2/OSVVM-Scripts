@@ -424,7 +424,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
     puts  $RunFile "TestSuites: "
   }
 
-  puts  $RunFile "  - Name: $SuiteName"
+  puts  $RunFile "  - Name: \"$SuiteName\""
 #  puts  $RunFile "    ReportsDirectory: [file join ${::osvvm::ReportsSubdirectory} $SuiteName]"
   puts  $RunFile "    TestCases:"
   close $RunFile
@@ -505,7 +505,7 @@ proc SkipTestBuildYaml {SimName Reason} {
   # The test case's status is `SKIPPED`. Called by [SkipTest].
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
-  puts  $RunFile "      - TestCaseName: $SimName"
+  puts  $RunFile "      - TestCaseName: \"$SimName\""
   puts  $RunFile "        Name: $SimName"
   puts  $RunFile "        Status: \"SKIPPED\""
   puts  $RunFile "        Results: null"
@@ -525,7 +525,7 @@ proc AnalyzeFailedBuildYaml {LibraryUnit Reason} {
   # The test case's status is `ANALYZE_FAILED`. Called by [simulate] if the previous [analyze] failed.
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
-  puts  $RunFile "      - TestCaseName: $LibraryUnit"
+  puts  $RunFile "      - TestCaseName: \"$LibraryUnit\""
   puts  $RunFile "        Name: $LibraryUnit"
   puts  $RunFile "        Status: \"ANALYZE_FAILED\""
   puts  $RunFile "        Results: null"

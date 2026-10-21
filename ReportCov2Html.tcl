@@ -1,22 +1,22 @@
 #  File Name:         Cov2Html.tcl
 #  Purpose:           Convert OSVVM YAML coverage information to HTML
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
 #    Convert OSVVM YAML coverage information to HTML
 #    Visible externally:  Cov2Html
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #    07/2024   2024.07    Updated handling of Coverage models with 0 weight
@@ -29,15 +29,15 @@
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2021-2024 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2021-2024 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,11 +61,11 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   #
   # See also: [Simulate2Html] [Alert2Html]
   variable ResultsFile
-    
+
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
-  
+
   set ErrorCode [catch {LocalCov2Html $TestCaseName $TestSuiteName $CovYamlFile} errmsg]
-  
+
   close $ResultsFile
 
   if {$ErrorCode} {
@@ -96,12 +96,12 @@ proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
   set Coverage      [dict get $TestDict Coverage]
   puts $ResultsFile "    <p>Total Coverage: $Coverage</p>"
   set FoundZeroWeight FALSE
-  
+
   foreach ModelDict [dict get $TestDict Models] {
     set ModelName [dict get $ModelDict Name]
-    set CovModelSettings [dict get $ModelDict Settings] 
-    set CovWeight        [dict get $CovModelSettings CovWeight] 
-    set IsRequirement    [dict get $CovModelSettings IsRequirement] 
+    set CovModelSettings [dict get $ModelDict Settings]
+    set CovWeight        [dict get $CovModelSettings CovWeight]
+    set IsRequirement    [dict get $CovModelSettings IsRequirement]
     if {$CovWeight < 1} {
       if {!$FoundZeroWeight} {
         puts $ResultsFile "    <details><summary class=\"subtitle\">Coverage Models with CovWeight = 0.  Ignored in GetCov calculations.  Used for OSVVM DelayCoverage. </summary>"
@@ -129,7 +129,7 @@ proc OsvvmCovInfo2Html {ModelName CovModelSettings} {
   #  ModelName        - Name of the coverage model.
   #  CovModelSettings - Settings of the coverage model. `Seeds` holds two values.
   variable ResultsFile
-  
+
   puts $ResultsFile "      <div class=\"CoverageSettings\">"
   puts $ResultsFile "        <details><summary class=\"subindented\">$ModelName Coverage Settings</summary>"
   puts $ResultsFile "          <table class=\"CoverageSettings\">"
@@ -148,7 +148,7 @@ proc OsvvmCovInfo2Html {ModelName CovModelSettings} {
       puts $ResultsFile "              <tr><td>${key}</td><td>[lindex ${val} 0], &nbsp;[lindex ${val} 1]</td></tr>"
     }
   }
-  
+
   puts $ResultsFile "            </tbody>"
   puts $ResultsFile "          </table>"
   puts $ResultsFile "        </details>"
@@ -167,8 +167,8 @@ proc OsvvmCovBins2Html {ModelName ModelDict WritePassFail CovWeight} {
   # `ILLEGAL` bin if its count is 0; an `IGNORE` bin is shown as `IGNORED`. The last row holds the model's total
   # coverage.
   variable ResultsFile
-  
-  set BinInfoDict      [dict get $ModelDict BinInfo] 
+
+  set BinInfoDict      [dict get $ModelDict BinInfo]
   set BinsArray        [dict get $ModelDict Bins]
 
   puts $ResultsFile "      <div class=\"CoverageTable\">"
@@ -236,6 +236,8 @@ proc OsvvmCovBins2Html {ModelName ModelDict WritePassFail CovWeight} {
     puts $ResultsFile "              </tr>"
   }
   set NumBins [expr 5 + [llength $RangeArray]]
+  if {$WritePassFail} { incr NumBins }   ;# one more bin when writing pass/fail status
+
   puts $ResultsFile "              <tr>"
   puts $ResultsFile "                <td style=\"text-align: left\" colspan=\"$NumBins\"><strong>Total Percent Coverage:</strong> &emsp; [format %.1f [dict get $ModelDict Coverage]]</td>"
   puts $ResultsFile "              </tr>"

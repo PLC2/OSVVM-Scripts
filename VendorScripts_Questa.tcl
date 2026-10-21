@@ -105,11 +105,11 @@ package require fileutil
 
   if {[expr [string compare $ToolVersion "2026.1"] >= 0]} {
     SetVHDLVersion 2019
-    variable Supports2019Interface           "true"
+#     variable Supports2019Interface           "true"    ;#!! fails on arrays of interfaces which is required
     variable Supports2019ImpureFunctions     "true"
     variable Supports2019FilePath            "true"
     variable Supports2019AssertApi           "true"
-    # variable Supports2019Generics            "true"
+#     variable Supports2019Generics            "true"
   }
 
   # Set if not set
@@ -501,7 +501,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # simulate options. Generics set with [generic] are in `GenericOptions` (as returned by `vendor_generic`) and
   # `GenericDict`. An error marks the simulation as failed.
   #
-  # Writes `OsvvmSimRun.tcl` with `vendor_CreateSimulateDoFile`, optimizes the design with `vopt` into
+  # Writes `OsvvmSimRun.tcl` with `vendor_SimulateCreateDoFile`, optimizes the design with `vopt` into
   # `<LibraryUnit>_opt` and simulates it with `vsim`, which sources `OsvvmSimRun.tcl`. When started from a shell, `vsim`
   # runs via `exec` and a non-zero exit code is an error.
   #
@@ -525,16 +525,18 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedSimulateOptions
   variable CoverageSimulateOptions
 
+  set VendorSimStart  [clock seconds]
+
 #  set SimTempDirectory $::osvvm::ReportsTestSuiteDirectory
   set SimTempDirectory [file join $::osvvm::VhdlLibraryFullPath SimTemp $::osvvm::TestSuiteName]
   CreateDirectory $SimTempDirectory
 
   # Create the script files
-  set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
+  set ErrorCode [catch {vendor_SimulateCreateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
-    error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
+    error "Failed: vendor_SimulateCreateDoFile $LibraryUnit"
   }
 
   set OptimizeOptions ""
@@ -551,15 +553,28 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   if {$::osvvm::Debug} {
 	  set OptimizeOptions "-debug,livesim"
+    set DesignFile "-designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin]"
+    set OptimizeFile ${TestCaseFileName}_opt
+  } else {
+    set DesignFile ""
+    set OptimizeFile ${LibraryName}_opt
   }
 
-  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions {*}$ExtendedOptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt {*}${::osvvm::GenericOptions}]
+#  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions {*}$ExtendedOptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt {*}${::osvvm::GenericOptions}]
+# changed -o to be LibraryName rather than LibraryUnit (which OSVVM has many per library)
+  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions {*}$ExtendedOptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${OptimizeFile} {*}${::osvvm::GenericOptions}]
 
-  puts "vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin]"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin]
+#  puts "vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin]"
+#  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin]
+  puts "vopt {*}${OptimizeOptions} {*}${DesignFile}"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} {*}${DesignFile}
+
+  set  SimulateOptimizeFinishTime    [clock seconds]
 
   # Set generics during opt rather than sim
-  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt {*}${args} -suppress 8683 -suppress 8684]
+#  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt {*}${args} -suppress 8683 -suppress 8684]
+# changed to ${LibraryName}_opt
+  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${OptimizeFile} {*}${args} -suppress 8683 -suppress 8684]
 #  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
 #  set SimulateOptions [concat $::osvvm::SiemensSimulateOptions $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
@@ -584,12 +599,22 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
       puts $CatchMessage
     }
   }
+
+  set  SimulateVsimFinishTime [clock seconds]
+  set  SimulateVOptElapsedTime    [expr ($SimulateOptimizeFinishTime - $VendorSimStart)]
+  set  SimulateVSimElapsedTime    [expr ($SimulateVsimFinishTime - $SimulateOptimizeFinishTime)]
+  set  SimulateElapsedTime        [expr ($SimulateVsimFinishTime - $VendorSimStart)]
+  puts "vendor_simulate Finish time [clock format $SimulateVsimFinishTime -format %T]"
+  puts "VOpt Elapsed time: [format %d:%02d:%02d [expr ($SimulateVOptElapsedTime/(60*60))] [expr (($SimulateVOptElapsedTime/60)%60)] [expr (${SimulateVOptElapsedTime}%60)]] "
+  puts "VSim Elapsed time: [format %d:%02d:%02d [expr ($SimulateVSimElapsedTime/(60*60))] [expr (($SimulateVSimElapsedTime/60)%60)] [expr (${SimulateVSimElapsedTime}%60)]] "
+  puts "Simulate Elapsed time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)]     [expr (${SimulateElapsedTime}%60)]] "
+
 }
 
 # -------------------------------------------------
-# vendor_CreateSimulateDoFile
+# vendor_SimulateCreateDoFile
 #
-proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+proc vendor_SimulateCreateDoFile {LibraryUnit ScriptFileName} {
   # Write the script the simulator runs after loading the design.
   #  LibraryUnit    - Top-level design unit of the simulation.
   #  ScriptFileName - Path of the script file to write.

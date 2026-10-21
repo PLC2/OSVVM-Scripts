@@ -321,7 +321,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     puts $ResultsFile "              <td ${AlertFailureClass}>$AlertFailure</td>"
     puts $ResultsFile "              <td ${AlertErrorClass}>$AlertError</td>"
     puts $ResultsFile "              <td ${AlertWarningClass}>$AlertWarning</td>"
-    puts $ResultsFile "              <td ${DisabledAlertErrorClass}>$DisabledAlertFailure</td>"
+    puts $ResultsFile "              <td ${DisabledAlertFailureClass}>$DisabledAlertFailure</td>"
     puts $ResultsFile "              <td ${DisabledAlertErrorClass}>$DisabledAlertError</td>"
     puts $ResultsFile "              <td ${DisabledAlertWarningClass}>$DisabledAlertWarning</td>"
     puts $ResultsFile "            </tr>"
@@ -339,7 +339,7 @@ proc CreateAlertResultsFooter {} {
   # Write the end of the alert results table and of the alert section.
   variable ResultsFile
 
-  puts $ResultsFile "          <tbody>"
+  puts $ResultsFile "          </tbody>"
   puts $ResultsFile "        </table>"
   puts $ResultsFile "      </details>"
   puts $ResultsFile "    </div>"

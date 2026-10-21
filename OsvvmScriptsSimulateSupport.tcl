@@ -47,7 +47,7 @@ namespace eval ::osvvm {
 # -------------------------------------------------
 # SimulateCreateDoFile
 #   called in vendor_simulate in "-do file.tcl" simulators
-#   Creates a script file that includes files that are found here 
+#   Creates a script file that includes files that are found here
 #
 proc SimulateCreateDoFile {LibraryUnit} {
   # Write the commands sourcing a simulation's user scripts into the simulator's start-up script.
@@ -62,11 +62,11 @@ proc SimulateCreateDoFile {LibraryUnit} {
   variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
-  
+
   set NormalizedSimulationDirectory [file normalize $CurrentSimulationDirectory]
   set NormalizedWorkingDirectory    [file normalize $CurrentWorkingDirectory]
   set NormalizedScriptDirectory     [file normalize $OsvvmScriptDirectory]
-  
+
   SimulateCreateSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
   if {${NormalizedSimulationDirectory} ne ${NormalizedWorkingDirectory}} {
     SimulateCreateSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
@@ -89,11 +89,11 @@ proc SimulateCreateSubScripts {LibraryUnit Directory} {
   # - `<LibraryUnit>.tcl`
   # - `<LibraryUnit>_<ToolName>.tcl`
   # - `<TestCaseName>.tcl` and `<TestCaseName>_<ToolName>.tcl`, if the test case name differs from $LibraryUnit
-  variable TestCaseName 
-  variable ToolVendor 
-  variable ToolName 
-  variable NoGui 
-  
+  variable TestCaseName
+  variable ToolVendor
+  variable ToolName
+  variable NoGui
+
   ScriptCreateIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
   ScriptCreateIfFileExists [file join ${Directory} ${ToolName}.tcl]
   if {! $NoGui} {
@@ -115,10 +115,10 @@ proc ScriptCreateIfWaveDoExists {ScriptToRun LibraryUnit} {
   # The written command catches an error of the waveform script and calls `CallbackOnError_WaveDo`, so a broken
   # waveform script doesn't stop the simulation.
   variable ScriptFile
-  
+
   if {[file exists $ScriptToRun]} {
     puts $ScriptFile  "  if {\[catch {source $ScriptToRun} errorMsg\]} {"
-    puts $ScriptFile  "    CallbackOnError_WaveDo \$errorMsg \$::errorInfo [file dirname $ScriptToRun] $LibraryUnit" 
+    puts $ScriptFile  "    CallbackOnError_WaveDo \$errorMsg \$::errorInfo [file dirname $ScriptToRun] $LibraryUnit"
     puts $ScriptFile  "  }"
   }
 }
@@ -137,7 +137,7 @@ proc ScriptCreateIfFileExists {ScriptToRun} {
 
 
 # -------------------------------------------------
-# SimulateRunScripts - 
+# SimulateRunScripts -
 #   called from vendor_simulate of command line based simulators
 #   Runs the script files that are found here as simulate is running
 #
@@ -153,11 +153,11 @@ proc SimulateRunScripts {LibraryUnit} {
   variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
-  
+
   set NormalizedSimulationDirectory [file normalize $CurrentSimulationDirectory]
   set NormalizedWorkingDirectory    [file normalize $CurrentWorkingDirectory]
   set NormalizedScriptDirectory     [file normalize $OsvvmScriptDirectory]
-  
+
   SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
   if {${NormalizedSimulationDirectory} ne ${NormalizedWorkingDirectory}} {
     SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
@@ -179,16 +179,16 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
   # - `wave.do`, unless the simulator runs without GUI (`NoGui`); an error calls `CallbackOnError_WaveDo`
   # - `<LibraryUnit>.tcl` and `<LibraryUnit>_<ToolName>.tcl`
   # - `<TestCaseName>.tcl` and `<TestCaseName>_<ToolName>.tcl`, if the test case name differs from $LibraryUnit
-  variable TestCaseName 
-  variable ToolVendor 
-  variable ToolName 
-  variable NoGui 
-  
+  variable TestCaseName
+  variable ToolVendor
+  variable ToolName
+  variable NoGui
+
   RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
   RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
   if {! $NoGui} {
     if {[catch {RunIfFileExists [file join ${Directory} wave.do]} errorMsg]} {
-      CallbackOnError_WaveDo $errorMsg $::errorInfo $Directory $LibraryUnit  
+      CallbackOnError_WaveDo $errorMsg $::errorInfo $Directory $LibraryUnit
     }
   }
   SimulateRunDesignScripts ${LibraryUnit} ${Directory}
@@ -204,7 +204,7 @@ proc SimulateRunDesignScripts {TestName Directory} {
   #
   # Sources `<TestName>.tcl`, then `<TestName>_<ToolName>.tcl`, each if it exists in $Directory.
   variable ToolName
-  
+
   RunIfFileExists [file join ${Directory} ${TestName}.tcl]
   RunIfFileExists [file join ${Directory} ${TestName}_${ToolName}.tcl]
 }
@@ -217,11 +217,8 @@ proc RunIfFileExists {ScriptToRun} {
   }
 }
 
-
-
-
 # Exports - here mainly it is for testing only
-namespace export CreateSimulateDoFile
+# namespace export SimulateCreateDoFile
 
 
 # end namespace ::osvvm

@@ -1,37 +1,37 @@
 #  File Name:         VendorScripts_Sigasi.tcl
 #  Purpose:           Scripts for running simulations in Sigasi
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
 #     Lieven Lemiengre    email:lieven.lemiengre@sigasi.com
-# 
+#
 #  Description
-#    Tcl procedures with the intent of making running 
+#    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #    02/2026   2025.09    Initial version for Sigasi Visual HDL
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2018 - 2025 by SynthWorks Design Inc.    
-#  
+#
+#  Copyright (c) 2018 - 2025 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,8 +47,8 @@
   variable ToolName    "Sigasi"
   variable ToolVersion "Visual-HDL"
   variable ToolNameVersion ${ToolName}-${ToolVersion}
-  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
-  
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead
+
   if {[info exists ::env(OSVVM_VHDL_TARGET)] && $::env(OSVVM_VHDL_TARGET) >= 2019} {
     SetVHDLVersion 2019
     variable Supports2019Interface "true"
@@ -114,7 +114,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   #
   # Runs `vcom -<VhdlVersion> -work <LibraryName>` with the options and the file.
   variable VhdlVersion
-  
+
   set  AnalyzeOptions [concat -${VhdlVersion} -work ${LibraryName} {*}${args} ${FileName}]
   vcom {*}$AnalyzeOptions
 }
@@ -165,7 +165,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # environment variable `SIGASI_COMPILATION_LOG` is set, the `vsim` command line is also appended to
   # `osvvm_simulation.log` in that log file's directory.
   variable SimulateTimeUnits
-  
+
   set SimulateOptions [concat -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} {*}${args} {*}${::osvvm::GenericOptions}]
 
   if {[info exists ::env(SIGASI_COMPILATION_LOG)]} {
@@ -180,9 +180,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 }
 
 # -------------------------------------------------
-# vendor_CreateSimulateDoFile
+# vendor_SimulateCreateDoFile
 #
-proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+proc vendor_SimulateCreateDoFile {LibraryUnit ScriptFileName} {
   # Write the script the simulator runs after loading the design.
   #  LibraryUnit    - Top-level design unit of the simulation.
   #  ScriptFileName - Path of the script file to write.
@@ -268,7 +268,7 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # -------------------------------------------------
 # Coverage - Not supported in Sigasi
 #
-proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   # Merge the code coverage databases of a test suite or a build.
   #  TestSuiteName     - Name of the test suite, or of the build at the end of a build.
   #  CoverageDirectory - The build's code coverage directory.
@@ -283,7 +283,7 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   # Does nothing: Sigasi doesn't collect code coverage.
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 
+proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   # Write the HTML code coverage report of a build.
   #  TestSuiteName         - Name of the build, whose merged database is reported.
   #  CodeCoverageDirectory - The build's code coverage directory.
@@ -295,7 +295,7 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   # Does nothing: Sigasi doesn't collect code coverage.
 }
 
-proc vendor_GetCoverageFileName {TestName} { 
+proc vendor_GetCoverageFileName {TestName} {
   # Return the file name of a build's HTML code coverage report.
   #  TestName - Name of the build.
   #

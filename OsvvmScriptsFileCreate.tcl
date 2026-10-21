@@ -289,11 +289,12 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
     puts $FileHandle "library osvvm ;"
     puts $FileHandle "context osvvm.OsvvmContext ;"
     puts $FileHandle "package ${PackageName} is"
-    if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
-      puts $FileHandle "  constant PATH_TO_TEST_SRC            : string  := RemoveEndingSeparator(ChangeSeparator(FILE_PATH))  & \"/\";  -- only valid with VHDL-2019"
-    } else {
+#!! Questa does not normalize FILE_PATH.  Instead is relative to sim directory using ".."
+#    if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
+#      puts $FileHandle "  constant PATH_TO_TEST_SRC            : string  := RemoveEndingSeparator(ChangeSeparator(FILE_PATH))  & \"/\";  -- only valid with VHDL-2019"
+#    } else {
       puts $FileHandle "  constant PATH_TO_TEST_SRC            : string := \"[file normalize [file join $::osvvm::CurrentWorkingDirectory]]/\" ;"
-    }
+#    }
     puts $FileHandle "  constant PATH_TO_VALIDATED_RESULTS   : string  := PATH_TO_TEST_SRC & \"${ValidatedResults}/\" ;"
     puts $FileHandle "  constant CHECK_TRANSCRIPT            : boolean := PATH_TO_TEST_SRC'length > 0 ;  -- TRUE if all went well"
     puts $FileHandle ""
@@ -714,7 +715,7 @@ proc FindSettingsPkgBody {SettingsPkgBaseName} {
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
-namespace export CreateOsvvmScriptSettingsPkg FindOsvvmSettingsDirectory CreateAndAnalyzeTestSettingsPkg
+namespace export CreateOsvvmScriptSettingsPkg FindOsvvmSettingsDirectory
 namespace export CreateTestCaseCommonPkg
 namespace export MakePkgHeader MakePkgBodyTemplate MakePkgSettings MakePkgBody
 namespace export MakeSettingsPkg FindSettingsPkgBody

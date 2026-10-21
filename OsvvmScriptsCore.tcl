@@ -182,7 +182,7 @@ proc PrintWithPrefix {Prefix RawMessageList} {
   # The vendor scripts use it to print error messages of a tool.
   foreach Message [split $RawMessageList \n] {
 #!!    if {[regexp -nocase "$Prefix" $Message]} { }
-    if {[string match -nocase "$Prefix" $Message]} {
+    if {[string match -nocase "${Prefix}*" $Message]} {
       # Only add prefix if message does not already have it
       puts "$Message"
     } else {
@@ -530,7 +530,7 @@ proc build {{Path_Or_File "."} args} {
   variable BuildErrorCode 0
 
   if {$BuildStarted} {
-    include $Path_Or_File $args
+    include $Path_Or_File {*}$args
   } else {
     set FindFileErrorCode [catch {set IncludeFile [FindIncludeFile $Path_Or_File]} FindErrMsg]
     if {$FindFileErrorCode != 0} {
@@ -729,35 +729,20 @@ proc OpenBuildHtml {{ParamBuildName ""}} {
   #
   # See also: [OpenIndex]
   if {$ParamBuildName eq ""} {
-      set ParamBuildName $::osvvm::LastBuildName
+    set ParamBuildName $::osvvm::LastBuildName
   }
-#  set BuildHtmlFile [file join ${::osvvm::OsvvmBuildOutputDirectory} ${ParamBuildName}.html]
   set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName} ${ParamBuildName}.html]
-  LocalOpenHtml $BuildHtmlFile $ParamBuildName
+  LocalOpenHtml $BuildHtmlFile
 }
 
-proc LocalOpenHtml {HtmlFile {ParamBuildName ""}} {
-  # Open an HTML file with the tool's or the default viewer.
-  #  HtmlFile       - Path of the HTML file.
-  #  ParamBuildName - Name of the build, passed to `vendor_OpenBuildHtml`.
-  #
-  # Calls `vendor_OpenBuildHtml`, if the tool defines it, else `DefaultVendor_OpenBuildHtml`.
-  if {[llength [info procs vendor_OpenBuildHtml]] > 0} {
-    vendor_OpenBuildHtml $HtmlFile $ParamBuildName
-  } else {
-    DefaultVendor_OpenBuildHtml $HtmlFile
-  }
-}
-
-proc DefaultVendor_OpenBuildHtml {BuildHtmlFile} {
+proc LocalOpenHtml {BuildHtmlFile} {
   # Open an HTML file with the operating system's default program.
   #  BuildHtmlFile - Path of the HTML file.
   #
-  # Works on Windows only (`start`); on other operating systems nothing happens.
-  if {[info exists ::env(OS)]} {
-    if {[regexp {[Ww]indows} $::env(OS)]} {
-      exec {*}[auto_execok start] "$BuildHtmlFile"
-    }
+  if {$::tcl_platform(platform) eq "windows"} {
+    exec {*}[auto_execok start] "$BuildHtmlFile" &
+  } elseif {$::tcl_platform(platform) eq "unix"} {
+    exec {*}[auto_execok xdg-open] "$BuildHtmlFile" &
   }
 }
 
@@ -1114,18 +1099,18 @@ proc OsvvmLibraryPath {PathToLib} {
   # leaving out the parts it already ends with.
   #
   # Returns the normalized path.
-  set AddPathSuffix ""
-  set TailPathToLib [file tail $PathToLib]
-  if {$TailPathToLib ne $::osvvm::VhdlLibrarySubdirectory} {
-    set AddPathSuffix $::osvvm::VhdlLibrarySubdirectory
+  set LibTailDirectory [file tail $PathToLib]
+  set LibTailParentDirectory [file tail [file dirname $PathToLib]]
+  if {$LibTailDirectory eq $::osvvm::VhdlLibrarySubdirectory &&
+      $LibTailParentDirectory eq $::osvvm::VhdlLibraryDirectory} {
+    # Path has everything
+    return [file normalize $PathToLib]
+  } elseif {$LibTailDirectory eq $::osvvm::VhdlLibraryDirectory} {
+    # Add VhdlLibrarySubdirectory to path
+    return [file normalize [file join $PathToLib $::osvvm::VhdlLibrarySubdirectory]]
   } else {
-    set $TailPathToLib [file tail [file dirname $PathToLib]
+    return [file normalize [file join $PathToLib $::osvvm::VhdlLibraryDirectory $::osvvm::VhdlLibrarySubdirectory]]
   }
-  if {$TailPathToLib ne $::osvvm::VhdlLibraryDirectory} {
-    set AddPathSuffix [file join $::osvvm::VhdlLibraryDirectory $AddPathSuffix]
-  }
-  set ResolvedPathToLib [file normalize [file join $PathToLib $AddPathSuffix]]
-  return $ResolvedPathToLib
 }
 
 proc CreateLibraryPath {PathToLib} {
@@ -1454,10 +1439,12 @@ proc LinkCurrentLibraries {} {
   # If directory changed, update CurrentSimulationDirectory, LibraryList
   CheckWorkingDir
 
-  foreach item $OldLibraryList {
-    set LibraryName [lindex $item 0]
-    set PathToLib   [lreplace $item 0 0]    ; # handles spaces in path
-    LinkLibrary ${LibraryName} ${PathToLib}
+  if {$OldLibraryList ne ""} {
+    foreach item $OldLibraryList {
+      set LibraryName [lindex $item 0]
+      set PathToLib   [lreplace $item 0 0]    ; # handles spaces in path
+      LinkLibrary ${LibraryName} ${PathToLib}
+    }
   }
 }
 
@@ -1615,11 +1602,11 @@ proc simulate {LibraryUnit args} {
     puts $SimProFile "simulate $LibraryUnit $args"
     close $SimProFile
 
-    catch [build $SimProFileName [BuildName $LibraryUnit]]  ;# Errors to std_output, but interactive and stopping anyway
+    catch {build $SimProFileName [BuildName $LibraryUnit]}
 
     SetInteractiveMode $SavedInteractive  ; # Restore original value
     set ::osvvm::CurrentWorkingDirectory $SavedCurrentWorkingDirectory   ;#Restore original value
-    catch [file delete -force $SimProFile]
+    catch {file delete -force $SimProFileName}
 
   } else {
     set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1910,7 +1897,7 @@ proc DoWaves {args} {
   } else {
     set WaveOptions ""
     if {$args ne ""} {
-      foreach wave {*}$args {
+      foreach wave $args {
         append WaveOptions "-do $wave "
       }
     }
@@ -1926,11 +1913,16 @@ proc CreateVerilogLibraryParams {prefix} {
   # Returns $prefix followed by the library name, for each library known to OSVVM.
   variable LibraryList
 
-  foreach item $LibraryList {
-    set LibraryName [lindex $item 0]
-    append VerilogLibraryParams ${prefix} ${LibraryName} " "
+  if {$LibraryList ne ""} {
+    foreach item $LibraryList {
+      set LibraryName [lindex $item 0]
+      append VerilogLibraryParams ${prefix} ${LibraryName} " "
+    }
+    return $VerilogLibraryParams
+  } else {
+    error "Call library to set libraries before calling analyze"
+    return ""
   }
-  return $VerilogLibraryParams
 }
 
 # -------------------------------------------------
@@ -2104,10 +2096,10 @@ proc RunAllTests {{TestFilePrefix ""} args} {
   #  args           - Not used.
   #
   # Calls [RunTest] for each `<TestFilePrefix>*.vhd` and `<TestFilePrefix>*.vhdl` file.
-  foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
+  foreach Test [glob -nocomplain [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
     RunTest $Test
   }
-  foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhdl]] {
+  foreach Test [glob -nocomplain [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhdl]] {
     RunTest $Test
   }
 }
@@ -2199,10 +2191,9 @@ proc LocalRemoveLibrary {LowerLibraryName ResolvedPathToLib} {
   }
 
   # if it is the current working library, unset VhdlWorkingLibrary
-  if {[info exists VhdlWorkingLibrary] && $VhdlWorkingLibrary eq $LowerLibraryName} {
+  if {[info exists VhdlWorkingLibrary] && [string tolower $VhdlWorkingLibrary] eq $LowerLibraryName} {
     unset VhdlWorkingLibrary
   }
-
   if {($found >= 0) || $RemoveUnmappedLibraries} {
     # handles case where $ResolvedPathToLib does not exist
     UnlinkAndDeleteLibrary $LowerLibraryName $ResolvedPathToLib
@@ -2365,13 +2356,16 @@ proc UnsetLibraryVars {} {
 # -------------------------------------------------
 # InstallProject
 #
-proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectDir/OsvvmLibraries.pro} } {
+proc InstallProject { {ProjectDir ""} {ProjectBuildScript ""} } {
   # Build a project in its own directory, with its libraries there.
   #  ProjectDir         - Directory of the project.
   #  ProjectBuildScript - Build script of the project.
   #
   # Changes into $ProjectDir, sets the library directory to it, creates and changes into `sim/<ToolNameVersion>` and
   # runs [build] with the log files in `logs`. Restores the directory, library directory and log settings afterwards.
+
+  if {$ProjectDir eq ""}         { set ProjectDir $OsvvmLibraries }
+  if {$ProjectBuildScript eq ""} { set $ProjectBuildScript [file join $ProjectDir OsvvmLibraries.pro] }
 
   # Record current SimulationDirectory and LibraryDirectory
   set StartingDirectory             [pwd]

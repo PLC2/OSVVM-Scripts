@@ -128,11 +128,11 @@ package require fileutil
 
   if {[expr [string compare $ToolVersion "2026.1"] >= 0]} {
     SetVHDLVersion 2019
-    variable Supports2019Interface           "true"
+#     variable Supports2019Interface           "true"    ;#!! fails on arrays of interfaces which is required
     variable Supports2019ImpureFunctions     "true"
     variable Supports2019FilePath            "true"
     variable Supports2019AssertApi           "true"
-    # variable Supports2019Generics            "true"
+#     variable Supports2019Generics            "true"
   }
 
 # -------------------------------------------------
@@ -513,7 +513,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # simulate options. Generics set with [generic] are in `GenericOptions` (as returned by `vendor_generic`) and
   # `GenericDict`. An error marks the simulation as failed.
   #
-  # Writes `OsvvmSimRun.tcl` with `vendor_CreateSimulateDoFile` and simulates the design with `vsim`, which sources
+  # Writes `OsvvmSimRun.tcl` with `vendor_SimulateCreateDoFile` and simulates the design with `vsim`, which sources
   # `OsvvmSimRun.tcl`. When started from a shell, `vsim` runs via `exec` and a non-zero exit code is an error.
   #
   # - `vsim` gets `SiemensSimulateOptions` (`-c` in batch mode or from a shell), `-voptargs=+acc` in the GUI with
@@ -529,11 +529,11 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ReportsTestSuiteDirectory
 
   # Create the script files
-  set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
+  set ErrorCode [catch {vendor_SimulateCreateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
-    error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
+    error "Failed: vendor_SimulateCreateDoFile $LibraryUnit"
   }
 
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
@@ -569,9 +569,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 }
 
 # -------------------------------------------------
-# vendor_CreateSimulateDoFile
+# vendor_SimulateCreateDoFile
 #
-proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+proc vendor_SimulateCreateDoFile {LibraryUnit ScriptFileName} {
   # Write the script the simulator runs after loading the design.
   #  LibraryUnit    - Top-level design unit of the simulation.
   #  ScriptFileName - Path of the script file to write.

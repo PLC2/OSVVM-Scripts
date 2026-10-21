@@ -280,7 +280,7 @@ proc WriteOneRequirement {FailIfLessThanGoal IsHtml TestCase {Requirement ""}} {
     puts $ResultsFile "            <td ${AlertFailureClass}>$AlertFailure</td>"
     puts $ResultsFile "            <td ${AlertErrorClass}>$AlertError</td>"
     puts $ResultsFile "            <td ${AlertWarningClass}>$AlertWarning</td>"
-    puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertFailure</td>"
+    puts $ResultsFile "            <td ${DisabledAlertFailureClass}>$DisabledAlertFailure</td>"
     puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertError</td>"
     puts $ResultsFile "            <td ${DisabledAlertWarningClass}>$DisabledAlertWarning</td>"
     puts $ResultsFile "        </tr>"

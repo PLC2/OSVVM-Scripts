@@ -490,7 +490,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # `GenericDict`. An error marks the simulation as failed.
   #
   # Optimizes the design with `vopt` into `<LibraryUnit>_opt`, writes `OsvvmSimRun.tcl` with
-  # `vendor_CreateSimulateDoFile` and simulates with `vsim`, whose `-do` option sources `OsvvmSimRun.tcl` and exits with
+  # `vendor_SimulateCreateDoFile` and simulates with `vsim`, whose `-do` option sources `OsvvmSimRun.tcl` and exits with
   # its status. An error of `vopt` or `vsim` is an error. Prints the call and the optimize options.
   #
   # - `vopt` gets `::VoptArgs`, `DebugOptions` (`+acc`) in the GUI with [SetDebugMode], `-work` and `-L <LibraryName>`,
@@ -533,11 +533,11 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 
   # Create the script files
-  set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
+  set ErrorCode [catch {vendor_SimulateCreateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
-    error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
+    error "Failed: vendor_SimulateCreateDoFile $LibraryUnit"
   }
 
   if {$::osvvm::SaveWaves} {
@@ -549,7 +549,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
   puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
-  set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions} {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage]
+  set ErrorCode [catch {eval $::osvvm::shell vsim {*}${SimulateOptions} {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage]
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
@@ -560,9 +560,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 }
 
 # -------------------------------------------------
-# vendor_CreateSimulateDoFile
+# vendor_SimulateCreateDoFile
 #
-proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+proc vendor_SimulateCreateDoFile {LibraryUnit ScriptFileName} {
   # Write the script the simulator runs after loading the design.
   #  LibraryUnit    - Top-level design unit of the simulation.
   #  ScriptFileName - Path of the script file to write.
@@ -581,6 +581,8 @@ proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
   #
   # Signal logging for [SetLogSignals] is commented out.
   variable ScriptFile
+  variable TestSuiteName
+  variable TestCaseFileName
 
   # Open File
   set ScriptFile [open $ScriptFileName w]
